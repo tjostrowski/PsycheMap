@@ -137,43 +137,35 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Row(
               children: [
                 Expanded(
-                    child: Container(
+                  child: Container(
                     decoration: _boxDecoration(),
-                    margin: EdgeInsets.fromLTRB(0, 0, 10, 0),
-                    // child: LayoutBuilder(
-                    //   builder: (context, constraints) => Card(
-                          // child: Container(
-                          //     height: constraints.maxHeight,
-                              child: Column(
-                                children: [
-                                Icon(Icons.person),
-                                Text(
-                                  'dr Cichocki',
-                                  textScaleFactor: 1.2,
-                                ),
-                                SizedBox(width: 0, height: 20),
-                                Text('27-10-2020')
-                              ]),
+                    margin: EdgeInsets.fromLTRB(0, 0, 10, 0),                    
+                    child: ListView(children: [
+                      Icon(Icons.person),
+                      Center(
+                          child: Text(
+                        'dr Cichocki',
+                        textScaleFactor: 1.2,
+                      )),
+                      SizedBox(width: 0, height: 20),
+                      Center(child: Text('27-10-2020')),
+                    ]),
                     // ),
                   ),
                 ),
                 Expanded(
                   child: Container(
                     decoration: _boxDecoration(),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) => Card(
-                          child: Container(
-                              height: constraints.maxHeight,
-                              child: Column(children: [
-                                Icon(Icons.people),
-                                Text(
-                                  'Grupa wsparcia',
-                                  textScaleFactor: 1.2,
-                                ),
-                                SizedBox(width: 0, height: 20),
-                                Text('28-10-2020')
-                              ]))),
-                    ),
+                    child: ListView(children: [
+                      Icon(Icons.people),
+                      Center(
+                          child: Text(
+                        'Grupa wsparcia',
+                        textScaleFactor: 1.2,
+                      )),
+                      SizedBox(width: 0, height: 20),
+                      Center(child: Text('28-10-2020')),
+                    ]),
                   ),
                 ),
               ],
