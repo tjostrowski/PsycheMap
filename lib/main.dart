@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
+import 'package:psyche_map/localizations.dart' show MyLocalizations, MyLocalizationsDelegate;
+import 'package:psyche_map/constants.dart' show languages;
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); 
+  Map<String, Map<String, String>> localizedValues = await initializeI18n();
+  runApp(MyApp(localizedValues));
 }
 
 class MyApp extends StatelessWidget {
+  final Map<String, Map<String, String>> localizedValues;
+  MyApp(this.localizedValues);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -14,6 +23,12 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(title: 'PsycheMap'),
+      localizationsDelegates: [
+        MyLocalizationsDelegate(localizedValues),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: languages.map((language) => Locale(language, '')),
     );
   }
 }
@@ -32,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(MyLocalizations.of(context).hello),
         elevation: 0.0,
         centerTitle: true,    
         actions: <Widget>[
