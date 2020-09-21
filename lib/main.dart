@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:psyche_map/db.dart';
 import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
 import 'package:psyche_map/localizations.dart'
     show MyLocalizations, MyLocalizationsDelegate;
@@ -46,6 +47,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    List<DrugPortion> currentDrugPortions = Db.of(context).getCurrentDrugs();
+    List<dynamic> metrics = MyLocalizations.of(context).metrics;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(MyLocalizations.of(context).hello),
@@ -61,9 +65,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(children: <Widget>[
         Flexible(
-          flex: 1,
+          flex: 2,
           child: Container(
-              margin: EdgeInsets.fromLTRB(20, 30, 20, 0),
+              margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
               decoration: _boxDecoration(),
               alignment: Alignment.center,
               padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
@@ -71,11 +75,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 // padding:
                 //     EdgeInsets.only(left: 5.0, right: 5.0, top: 5, bottom: 5),
                 shrinkWrap: false,
-                itemCount: MyLocalizations.of(context).metrics.length,
+                itemCount: metrics.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2, childAspectRatio: _aspectRatio(context)),
                 itemBuilder: (context, index) {
-                  final item = MyLocalizations.of(context).metrics[index];
+                  final item = metrics[index];
                   return Card(
                     child: ListTile(
                       title: Text(item),
@@ -83,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         width: 15,
                         height: 15,
                         decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,                                
+                            color: Theme.of(context).primaryColor,
                             borderRadius:
                                 BorderRadius.all(Radius.circular(50))),
                       ),
@@ -95,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
               )),
         ),
         Flexible(
-          flex: 2,
+          flex: 3,
           child: Container(
             margin: EdgeInsets.fromLTRB(20, 10, 20, 0),
             child: Column(
@@ -104,6 +108,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 Expanded(
                   child: Container(
                     decoration: _boxDecoration(),
+                    padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                    child: ListView.builder(
+                      itemCount: currentDrugPortions.length,
+                      itemBuilder: (context, index) {
+                        DrugPortion portion = currentDrugPortions[index];
+                        return Card(
+                            child: ListTile(
+                          leading: Icon(Icons.healing),
+                          title: Text(portion.drugName),
+                          subtitle: Text(portion.drugDose),
+                          trailing: Text(portion.count.toString()),
+                        ));
+                      },
+                    ),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -112,21 +130,50 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         Flexible(
-          flex: 1,
+          flex: 2,
           child: Container(
             margin: EdgeInsets.fromLTRB(20, 5, 20, 10),
             alignment: Alignment.center,
             child: Row(
               children: [
                 Expanded(
-                  child: Container(
+                    child: Container(
                     decoration: _boxDecoration(),
                     margin: EdgeInsets.fromLTRB(0, 0, 10, 0),
+                    // child: LayoutBuilder(
+                    //   builder: (context, constraints) => Card(
+                          // child: Container(
+                          //     height: constraints.maxHeight,
+                              child: Column(
+                                children: [
+                                Icon(Icons.person),
+                                Text(
+                                  'dr Cichocki',
+                                  textScaleFactor: 1.2,
+                                ),
+                                SizedBox(width: 0, height: 20),
+                                Text('27-10-2020')
+                              ]),
+                    // ),
                   ),
                 ),
                 Expanded(
                   child: Container(
                     decoration: _boxDecoration(),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) => Card(
+                          child: Container(
+                              height: constraints.maxHeight,
+                              child: Column(children: [
+                                Icon(Icons.people),
+                                Text(
+                                  'Grupa wsparcia',
+                                  textScaleFactor: 1.2,
+                                ),
+                                SizedBox(width: 0, height: 20),
+                                Text('28-10-2020')
+                              ]))),
+                    ),
                   ),
                 ),
               ],
