@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
-import 'package:psyche_map/localizations.dart' show MyLocalizations, MyLocalizationsDelegate;
+import 'package:psyche_map/localizations.dart'
+    show MyLocalizations, MyLocalizationsDelegate;
 import 'package:psyche_map/constants.dart' show languages;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); 
-  Map<String, Map<String, String>> localizedValues = await initializeI18n();
+  WidgetsFlutterBinding.ensureInitialized();
+  Map<String, Map<String, dynamic>> localizedValues = await initializeI18n();
   runApp(MyApp(localizedValues));
 }
 
 class MyApp extends StatelessWidget {
-  final Map<String, Map<String, String>> localizedValues;
+  final Map<String, Map<String, dynamic>> localizedValues;
   MyApp(this.localizedValues);
 
   @override
@@ -49,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(MyLocalizations.of(context).hello),
         elevation: 0.0,
-        centerTitle: true,    
+        centerTitle: true,
         actions: <Widget>[
           IconButton(
             onPressed: () {},
@@ -62,11 +63,36 @@ class _MyHomePageState extends State<MyHomePage> {
         Flexible(
           flex: 1,
           child: Container(
-            margin: EdgeInsets.fromLTRB(20, 30, 20, 0),
-            decoration: _boxDecoration(),
-            alignment: Alignment.center,
-          ),
-          // ),
+              margin: EdgeInsets.fromLTRB(20, 30, 20, 0),
+              decoration: _boxDecoration(),
+              alignment: Alignment.center,
+              padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+              child: GridView.builder(
+                // padding:
+                //     EdgeInsets.only(left: 5.0, right: 5.0, top: 5, bottom: 5),
+                shrinkWrap: false,
+                itemCount: MyLocalizations.of(context).metrics.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, childAspectRatio: _aspectRatio(context)),
+                itemBuilder: (context, index) {
+                  final item = MyLocalizations.of(context).metrics[index];
+                  return Card(
+                    child: ListTile(
+                      title: Text(item),
+                      trailing: Container(
+                        width: 15,
+                        height: 15,
+                        decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,                                
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(50))),
+                      ),
+                      onTap: () {},
+                    ),
+                    elevation: 0.5,
+                  );
+                },
+              )),
         ),
         Flexible(
           flex: 2,
@@ -116,5 +142,15 @@ class _MyHomePageState extends State<MyHomePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.0),
         boxShadow: [BoxShadow(blurRadius: 2.0, color: Colors.grey)]);
+  }
+
+  double _aspectRatio(BuildContext context) {
+    double crossAxisSpacing = 8;
+    double screenWidth = MediaQuery.of(context).size.width;
+    double crossAxisCount = 2;
+    double width = (screenWidth - ((crossAxisCount - 1) * crossAxisSpacing)) /
+        crossAxisCount;
+    double cellHeight = 70;
+    return width / cellHeight;
   }
 }

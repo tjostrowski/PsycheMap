@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:psyche_map/constants.dart';
 
 class MyLocalizations {
-  final Map<String, Map<String, String>> localizedValues;
+  final Map<String, Map<String, dynamic>> localizedValues;
   MyLocalizations(this.locale, this.localizedValues);
 
   final Locale locale;
@@ -16,10 +16,14 @@ class MyLocalizations {
   String get hello {
     return localizedValues[locale.languageCode]['hello'];
   }
+
+  List<dynamic> get metrics {
+    return localizedValues[locale.languageCode]['metrics'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {
-  Map<String, Map<String, String>> localizedValues;
+  Map<String, Map<String, dynamic>> localizedValues;
 
   MyLocalizationsDelegate(this.localizedValues);
 

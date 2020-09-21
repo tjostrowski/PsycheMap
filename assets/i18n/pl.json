@@ -1,6 +1,8 @@
 {
     "hello": "Cześć",
-    "metric1": "Sen",
-    "metric2": "Nastrój",
-    "metric3": "Poziom agresji"
+    "metrics": [
+        "Sen",
+        "Nastrój",
+        "Poziom agresji"
+    ]
 }
