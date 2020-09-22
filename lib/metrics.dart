@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:psyche_map/localizations.dart';
 
+import 'commons.dart';
+
 class MetricsPage extends StatefulWidget {
   MetricsPage({Key key}) : super(key: key);
 
@@ -11,17 +13,11 @@ class _MetricsPageState extends State<MetricsPage>
     with SingleTickerProviderStateMixin {
   TabController _tabController;
 
-  static const _kTabPages = [
-    Center(),
-    Center(),
-    Center(),
-  ];
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: _kTabPages.length,
+      length: 3,
       vsync: this,
     );
   }
@@ -38,7 +34,11 @@ class _MetricsPageState extends State<MetricsPage>
       appBar: AppBar(
         title: Text(MyLocalizations.of(context).metricsTitle),
       ),
-      body: TabBarView(children: _kTabPages, controller: _tabController),
+      body: TabBarView(children: [
+        QuestionnaireTab(),
+        Center(),
+        Center(),
+      ], controller: _tabController),
       bottomNavigationBar: Material(
           color: Colors.green,
           child: TabBar(
@@ -56,5 +56,58 @@ class _MetricsPageState extends State<MetricsPage>
             controller: _tabController,
           )),
     );
+  }
+}
+
+class QuestionnaireTab extends StatefulWidget {
+  QuestionnaireTab({Key key}) : super(key: key);
+
+  State<StatefulWidget> createState() => _QuestionnaireTabState();
+}
+
+class _QuestionnaireTabState extends State<QuestionnaireTab> {
+  // Map<String, int> _questionnaires = new Map();
+  List<int> sliderValues = [3, 3, 3, 3, 3, 3];
+
+  @override
+  Widget build(BuildContext context) {
+    List<dynamic> metrics = MyLocalizations.of(context).metrics;
+    return Container(
+        decoration: boxDecoration(),
+        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: metrics.length,
+                itemBuilder: (context, index) {
+                  String metric = metrics[index];
+                  // _questionnaires[metric] = 3;
+                  return Card(
+                      child: Column(
+                    children: [
+                      Slider(
+                        min: 0.0,
+                        max: 5.0,
+                        divisions: 5,
+                        value: sliderValues[index].toDouble(),
+                        label: sliderValues[index].toString(),
+                        onChanged: (double value) {
+                          setState(() {
+                            sliderValues[index] = value.round();
+                          });
+                        },
+                      ),
+                      Text(metric),
+                    ],
+                  ));
+                },
+              ),
+            ),
+            Align(
+                alignment: Alignment.bottomRight,
+                child: RaisedButton(child: Text(MyLocalizations.of(context).submit))),
+          ],
+        ));
   }
 }

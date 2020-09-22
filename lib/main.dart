@@ -7,6 +7,8 @@ import 'package:psyche_map/localizations.dart'
 import 'package:psyche_map/constants.dart' show languages;
 import 'package:psyche_map/metrics.dart';
 
+import 'commons.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Map<String, Map<String, dynamic>> localizedValues = await initializeI18n();
@@ -71,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context) => MetricsPage())); },
               child: Container(
                   margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  decoration: _boxDecoration(),
+                  decoration: boxDecoration(),
                   alignment: Alignment.center,
                   padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
                   child: GridView.builder(
@@ -110,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 SizedBox(height: 20),
                 Expanded(
                   child: Container(
-                    decoration: _boxDecoration(),
+                    decoration: boxDecoration(),
                     padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
                     child: ListView.builder(
                       itemCount: currentDrugPortions.length,
@@ -141,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 Expanded(
                   child: Container(
-                    decoration: _boxDecoration(),
+                    decoration: boxDecoration(),
                     margin: EdgeInsets.fromLTRB(0, 0, 10, 0),
                     child: ListView(children: [
                       Icon(Icons.person),
@@ -158,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Expanded(
                   child: Container(
-                    decoration: _boxDecoration(),
+                    decoration: boxDecoration(),
                     child: ListView(children: [
                       Icon(Icons.people),
                       Center(
@@ -177,13 +179,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ]),
     );
-  }
-
-  BoxDecoration _boxDecoration() {
-    return BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.0),
-        boxShadow: [BoxShadow(blurRadius: 2.0, color: Colors.grey)]);
   }
 
   double _aspectRatio(BuildContext context) {

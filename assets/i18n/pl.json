@@ -3,10 +3,14 @@
     "metrics": [
         "Sen",
         "Nastrój",
-        "Poziom agresji"
+        "Poziom agresji",
+        "Aktywność dzienna",
+        "Socjalizacja",
+        "Poziom stresu"
     ],
     "questionnaire": "Ankieta",
     "stats": "Statystyki",
     "settings": "Ustawienia",
-    "metricsTitle": "Metryki"
+    "metricsTitle": "Metryki",
+    "submit": "Zatwierdź"
 }

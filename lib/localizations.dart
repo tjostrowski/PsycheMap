@@ -36,6 +36,10 @@ class MyLocalizations {
   String get metricsTitle {
     return localizedValues[locale.languageCode]['metricsTitle'];
   }
+
+  String get submit {
+    return localizedValues[locale.languageCode]['submit'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {
