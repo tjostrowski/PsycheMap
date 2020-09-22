@@ -5,6 +5,7 @@ import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
 import 'package:psyche_map/localizations.dart'
     show MyLocalizations, MyLocalizationsDelegate;
 import 'package:psyche_map/constants.dart' show languages;
+import 'package:psyche_map/metrics.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,39 +66,41 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(children: <Widget>[
         Flexible(
-          flex: 2,
-          child: Container(
-              margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-              decoration: _boxDecoration(),
-              alignment: Alignment.center,
-              padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-              child: GridView.builder(
-                // padding:
-                //     EdgeInsets.only(left: 5.0, right: 5.0, top: 5, bottom: 5),
-                shrinkWrap: false,
-                itemCount: metrics.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, childAspectRatio: _aspectRatio(context)),
-                itemBuilder: (context, index) {
-                  final item = metrics[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(item),
-                      trailing: Container(
-                        width: 15,
-                        height: 15,
-                        decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(50))),
-                      ),
-                      onTap: () {},
-                    ),
-                    elevation: 0.5,
-                  );
-                },
-              )),
-        ),
+            flex: 2,
+            child: GestureDetector(
+              onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context) => MetricsPage())); },
+              child: Container(
+                  margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  decoration: _boxDecoration(),
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                  child: GridView.builder(
+                    // padding:
+                    //     EdgeInsets.only(left: 5.0, right: 5.0, top: 5, bottom: 5),
+                    shrinkWrap: false,
+                    itemCount: metrics.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: _aspectRatio(context)),
+                    itemBuilder: (context, index) {
+                      final item = metrics[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(item),
+                          trailing: Container(
+                            width: 15,
+                            height: 15,
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(50))),
+                          ),                          
+                        ),
+                        elevation: 0.5,
+                      );
+                    },
+                  )),
+            )),
         Flexible(
           flex: 3,
           child: Container(
@@ -139,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Expanded(
                   child: Container(
                     decoration: _boxDecoration(),
-                    margin: EdgeInsets.fromLTRB(0, 0, 10, 0),                    
+                    margin: EdgeInsets.fromLTRB(0, 0, 10, 0),
                     child: ListView(children: [
                       Icon(Icons.person),
                       Center(

@@ -20,6 +20,22 @@ class MyLocalizations {
   List<dynamic> get metrics {
     return localizedValues[locale.languageCode]['metrics'];
   }
+
+  String get questionnaire {
+    return localizedValues[locale.languageCode]['questionnaire'];
+  }
+
+  String get stats {
+    return localizedValues[locale.languageCode]['stats'];
+  }
+
+  String get settings {
+    return localizedValues[locale.languageCode]['settings'];
+  }
+
+  String get metricsTitle {
+    return localizedValues[locale.languageCode]['metricsTitle'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {

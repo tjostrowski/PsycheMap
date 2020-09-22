@@ -4,5 +4,9 @@
         "Sen",
         "Nastrój",
         "Poziom agresji"
-    ]
+    ],
+    "questionnaire": "Ankieta",
+    "stats": "Statystyki",
+    "settings": "Ustawienia",
+    "metricsTitle": "Metryki"
 }
