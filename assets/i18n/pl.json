@@ -4,9 +4,10 @@
         "Sen",
         "Nastrój",
         "Poziom agresji",
-        "Aktywność dzienna",
+        "Aktywność",
         "Socjalizacja",
-        "Poziom stresu"
+        "Poziom stresu",
+        "Inne"
     ],
     "questionnaire": "Ankieta",
     "stats": "Statystyki",

@@ -67,7 +67,7 @@ class QuestionnaireTab extends StatefulWidget {
 
 class _QuestionnaireTabState extends State<QuestionnaireTab> {
   // Map<String, int> _questionnaires = new Map();
-  List<int> sliderValues = [3, 3, 3, 3, 3, 3];
+  List<int> sliderValues = [3, 3, 3, 3, 3, 3, 3];
 
   @override
   Widget build(BuildContext context) {
@@ -75,38 +75,38 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
     return Container(
         decoration: boxDecoration(),
         padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: metrics.length,
-                itemBuilder: (context, index) {
-                  String metric = metrics[index];
-                  // _questionnaires[metric] = 3;
-                  return Card(
-                      child: Column(
-                    children: [
-                      Slider(
-                        min: 0.0,
-                        max: 5.0,
-                        divisions: 5,
-                        value: sliderValues[index].toDouble(),
-                        label: sliderValues[index].toString(),
-                        onChanged: (double value) {
-                          setState(() {
-                            sliderValues[index] = value.round();
-                          });
-                        },
-                      ),
-                      Text(metric),
-                    ],
-                  ));
-                },
-              ),
-            ),
+            ListView.builder(
+              itemCount: metrics.length,
+              itemBuilder: (context, index) {
+                String metric = metrics[index];
+                // _questionnaires[metric] = 3;
+                return Card(
+                    child: Column(
+                  children: [
+                    Slider(
+                      min: 0.0,
+                      max: 5.0,
+                      divisions: 5,
+                      value: sliderValues[index].toDouble(),
+                      label: sliderValues[index].toString(),
+                      onChanged: (double value) {
+                        setState(() {
+                          sliderValues[index] = value.round();
+                        });
+                      },
+                    ),
+                    Text(metric),
+                  ],
+                ));
+              },
+            ),        
             Align(
                 alignment: Alignment.bottomRight,
-                child: RaisedButton(child: Text(MyLocalizations.of(context).submit))),
+                child: FloatingActionButton.extended(
+                    icon: Icon(Icons.save),
+                    label: Text(MyLocalizations.of(context).submit))),
           ],
         ));
   }
