@@ -40,6 +40,14 @@ class MyLocalizations {
   String get submit {
     return localizedValues[locale.languageCode]['submit'];
   }
+
+  String get weekly {
+    return localizedValues[locale.languageCode]['weekly'];
+  }
+
+  String get monthly {
+    return localizedValues[locale.languageCode]['monthly'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {

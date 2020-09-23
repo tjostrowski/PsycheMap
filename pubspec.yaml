@@ -29,6 +29,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
 
+  expandable: ^4.1.4
+
+  bezier_chart: "^1.0.16"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
