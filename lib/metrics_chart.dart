@@ -6,7 +6,7 @@ import 'db.dart';
 Widget weeklyChart(BuildContext context, String metricName) {
   final toDate = DateTime.now();
   final fromDate = toDate.subtract(Duration(days: 7));
-  final List<MetricValue> metricValues = Db.of(context).getMetricValuesForLastWeek(Metric(metricName));
+  final List<MetricValue> metricValues = Db.of(context).getMetricValuesForLastWeek(Metric(metricName, 1));
 
   return _plotDailyChart(metricValues, fromDate, toDate, context, metricName);
 }
@@ -14,7 +14,7 @@ Widget weeklyChart(BuildContext context, String metricName) {
 Widget monthlyChart(BuildContext context, String metricName) {
   final toDate = DateTime.now();
   final fromDate = toDate.subtract(Duration(days: 30));
-  final List<MetricValue> metricValues = Db.of(context).getMetricValuesForLastMonth(Metric(metricName));
+  final List<MetricValue> metricValues = Db.of(context).getMetricValuesForLastMonth(Metric(metricName, 1));
   
   return _plotDailyChart(metricValues, fromDate, toDate, context, metricName);
 }

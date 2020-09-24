@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:psyche_map/localizations.dart';
 
 class Db {
+  final BuildContext context;
+
+  Db(this.context);
+
   static Db of(BuildContext context) {
-    return new Db();
+    return new Db(context);
   }
 
   List<DrugPortion> getCurrentDrugs() {
@@ -40,6 +45,15 @@ class Db {
       MetricValue(metric, 5.0, now.subtract(Duration(days: 1))),
     ];
   }
+
+  List<Metric> getMetrics() {
+    List<dynamic> metricNames = MyLocalizations.of(context).metrics;
+    List<Metric> metrics = List();
+    for (int i = 0; i < metricNames.length; ++i) {
+      metrics.add(Metric(metricNames[i], i+1));
+    }
+    return metrics;
+  }
 }
 
 class DrugPortion {
@@ -60,8 +74,8 @@ class MetricValue {
 }
 
 class Metric {
-  final int metricId = 0;
+  final int metricId;
   final String metricName;
 
-  Metric(this.metricName);
+  Metric(this.metricName, this.metricId);
 }

@@ -5,9 +5,10 @@
         "Nastrój",
         "Poziom agresji",
         "Aktywność",
-        "Socjalizacja",
+        "Socjalizacja", 
         "Poziom stresu",
-        "Inne"
+        "Inne",       
+        "Inne jeszcze"
     ],
     "questionnaire": "Ankieta",
     "stats": "Statystyki",
@@ -15,5 +16,7 @@
     "metricsTitle": "Metryki",
     "submit": "Zatwierdź",
     "weekly": "Tygodniowy",
-    "monthly": "Miesięczny"
+    "monthly": "Miesięczny",
+    "searchMetric": "Wyszukaj metrykę",
+    "add": "Dodaj"
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:psyche_map/db.dart';
 import 'package:psyche_map/localizations.dart';
 
 import 'commons.dart';
@@ -38,7 +40,7 @@ class _MetricsPageState extends State<MetricsPage>
       body: TabBarView(children: [
         QuestionnaireTab(),
         ChartsTab(),
-        Center(),
+        ConfigurationTab(),
       ], controller: _tabController),
       bottomNavigationBar: Material(
           color: Colors.green,
@@ -72,9 +74,15 @@ class ChartsTab extends StatefulWidget {
   State<StatefulWidget> createState() => _ChartsTabState();
 }
 
+class ConfigurationTab extends StatefulWidget {
+  ConfigurationTab({Key key}) : super(key: key);
+
+  State<StatefulWidget> createState() => _ConfigurationTabState();
+}
+
 class _QuestionnaireTabState extends State<QuestionnaireTab> {
   // Map<String, int> _questionnaires = new Map();
-  List<int> sliderValues = [3, 3, 3, 3, 3, 3, 3];
+  List<int> sliderValues = [3, 3, 3, 3, 3, 3, 3, 3];
 
   @override
   Widget build(BuildContext context) {
@@ -176,5 +184,75 @@ class _ChartsTabState extends State<ChartsTab> {
             MapEntry(index, DropdownMenuItem(child: Text(m), value: index + 1)))
         .values
         .toList();
+  }
+}
+
+class _ConfigurationTabState extends State<ConfigurationTab> {
+  final TextEditingController typeAheadController = TextEditingController();
+
+  Metric currentlySelectedMetric;
+
+  List<Metric> selectedMetrics = [];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+            child: new Container(
+                child: TypeAheadField(
+              textFieldConfiguration: TextFieldConfiguration(
+                  autofocus: true,
+                  style: DefaultTextStyle.of(context)
+                      .style
+                      .copyWith(fontStyle: FontStyle.italic),
+                  decoration: InputDecoration(border: OutlineInputBorder()),
+                  controller: this.typeAheadController),
+              suggestionsCallback: (pattern) async {
+                return await Db.of(context).getMetrics().where((element) =>
+                    element.metricName
+                        .toLowerCase()
+                        .startsWith(pattern.toLowerCase()));
+              },
+              itemBuilder: (BuildContext context, Metric suggestion) {
+                return ListTile(
+                  leading: Icon(Icons.reorder),
+                  title: Text(suggestion.metricName),
+                );
+              },
+              onSuggestionSelected: (Metric suggestion) {
+                this.currentlySelectedMetric = suggestion;
+                this.typeAheadController.text = suggestion.metricName;
+              },
+            )),
+            padding: EdgeInsets.all(16.0)),
+        RaisedButton(
+          child: Text(MyLocalizations.of(context).add),
+          onPressed: () {
+            if (currentlySelectedMetric == null ||
+                selectedMetrics.contains(currentlySelectedMetric)) {
+              return;
+            }
+            selectedMetrics.add(currentlySelectedMetric);
+            setState(() {});              
+          },
+        ),
+        Expanded(
+            child: ListView.builder(
+                padding: const EdgeInsets.all(8),
+                itemCount: selectedMetrics.length,
+                itemBuilder: (BuildContext context, int index) {
+                  Metric metric = selectedMetrics[index];
+                  return Container(
+                    height: 50,
+                    margin: EdgeInsets.all(2),
+                    color: Colors.blue[400],
+                    child: Center(
+                      child: Text(metric.metricName),
+                    ),
+                  );
+                })),
+      ],
+    );
   }
 }

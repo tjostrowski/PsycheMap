@@ -33,6 +33,8 @@ dependencies:
 
   bezier_chart: "^1.0.16"
 
+  flutter_typeahead: ^1.8.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

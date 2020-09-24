@@ -48,6 +48,14 @@ class MyLocalizations {
   String get monthly {
     return localizedValues[locale.languageCode]['monthly'];
   }
+
+  String get searchMetric {
+    return localizedValues[locale.languageCode]['searchMetric'];
+  }
+
+  String get add {
+    return localizedValues[locale.languageCode]['add'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {
