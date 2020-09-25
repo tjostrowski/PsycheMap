@@ -68,9 +68,12 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(children: <Widget>[
         Flexible(
-            flex: 2,
+            flex: 5,
             child: GestureDetector(
-              onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context) => MetricsPage())); },
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => MetricsPage()));
+              },
               child: Container(
                   margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
                   decoration: boxDecoration(),
@@ -82,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     shrinkWrap: false,
                     itemCount: metrics.length,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                        crossAxisCount: 1,
                         childAspectRatio: _aspectRatio(context)),
                     itemBuilder: (context, index) {
                       final item = metrics[index];
@@ -93,47 +96,47 @@ class _MyHomePageState extends State<MyHomePage> {
                             width: 15,
                             height: 15,
                             decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
+                                color: (index % 3 == 0) ? Colors.red : Theme.of(context).primaryColor,
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(50))),
-                          ),                          
+                          ),
                         ),
                         elevation: 0.5,
                       );
                     },
                   )),
             )),
-        Flexible(
-          flex: 3,
-          child: Container(
-            margin: EdgeInsets.fromLTRB(20, 10, 20, 0),
-            child: Column(
-              children: [
-                SizedBox(height: 20),
-                Expanded(
-                  child: Container(
-                    decoration: boxDecoration(),
-                    padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-                    child: ListView.builder(
-                      itemCount: currentDrugPortions.length,
-                      itemBuilder: (context, index) {
-                        DrugPortion portion = currentDrugPortions[index];
-                        return Card(
-                            child: ListTile(
-                          leading: Icon(Icons.healing),
-                          title: Text(portion.drugName),
-                          subtitle: Text(portion.drugDose),
-                          trailing: Text(portion.count.toString()),
-                        ));
-                      },
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ),
+        // Flexible(
+        //   flex: 3,
+        //   child: Container(
+        //     margin: EdgeInsets.fromLTRB(20, 10, 20, 0),
+        //     child: Column(
+        //       children: [
+        //         SizedBox(height: 20),
+        //         Expanded(
+        //           child: Container(
+        //             decoration: boxDecoration(),
+        //             padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+        //             child: ListView.builder(
+        //               itemCount: currentDrugPortions.length,
+        //               itemBuilder: (context, index) {
+        //                 DrugPortion portion = currentDrugPortions[index];
+        //                 return Card(
+        //                     child: ListTile(
+        //                   leading: Icon(Icons.healing),
+        //                   title: Text(portion.drugName),
+        //                   subtitle: Text(portion.drugDose),
+        //                   trailing: Text(portion.count.toString()),
+        //                 ));
+        //               },
+        //             ),
+        //           ),
+        //         ),
+        //         SizedBox(height: 20),
+        //       ],
+        //     ),
+        //   ),
+        // ),
         Flexible(
           flex: 2,
           child: Container(
@@ -146,30 +149,31 @@ class _MyHomePageState extends State<MyHomePage> {
                     decoration: boxDecoration(),
                     margin: EdgeInsets.fromLTRB(0, 0, 10, 0),
                     child: ListView(children: [
-                      Icon(Icons.person),
+                      SizedBox(height: 30),
+                      Icon(Icons.question_answer),
                       Center(
                           child: Text(
-                        'dr Cichocki',
-                        textScaleFactor: 1.2,
+                        'Ankieta',
+                        textScaleFactor: 1.6,
                       )),
-                      SizedBox(width: 0, height: 20),
-                      Center(child: Text('27-10-2020')),
+                      Center(
+                          child: Text(
+                        '27-10-2020',
+                      )),
                     ]),
-                    // ),
                   ),
                 ),
                 Expanded(
                   child: Container(
                     decoration: boxDecoration(),
                     child: ListView(children: [
-                      Icon(Icons.people),
+                      SizedBox(height: 30),
+                      Icon(Icons.settings),
                       Center(
                           child: Text(
-                        'Grupa wsparcia',
-                        textScaleFactor: 1.2,
-                      )),
-                      SizedBox(width: 0, height: 20),
-                      Center(child: Text('28-10-2020')),
+                        'Ustawienia',
+                        textScaleFactor: 1.6,
+                      )),                      
                     ]),
                   ),
                 ),
@@ -184,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double _aspectRatio(BuildContext context) {
     double crossAxisSpacing = 8;
     double screenWidth = MediaQuery.of(context).size.width;
-    double crossAxisCount = 2;
+    double crossAxisCount = 1;
     double width = (screenWidth - ((crossAxisCount - 1) * crossAxisSpacing)) /
         crossAxisCount;
     double cellHeight = 70;
