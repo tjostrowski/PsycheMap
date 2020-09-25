@@ -83,6 +83,7 @@ class ConfigurationTab extends StatefulWidget {
 class _QuestionnaireTabState extends State<QuestionnaireTab> {
   // Map<String, int> _questionnaires = new Map();
   List<int> sliderValues = [3, 3, 3, 3, 3, 3, 3, 3];
+  bool enabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -92,37 +93,46 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
         padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
         child: Stack(
           children: [
-            ListView.builder(
-              itemCount: metrics.length,
-              itemBuilder: (context, index) {
-                String metric = metrics[index];
-                // _questionnaires[metric] = 3;
-                return Card(
-                    child: Column(
-                  children: [
-                    Slider(
-                      min: 0.0,
-                      max: 5.0,
-                      divisions: 5,
-                      value: sliderValues[index].toDouble(),
-                      label: sliderValues[index].toString(),
-                      onChanged: (double value) {
-                        setState(() {
-                          sliderValues[index] = value.round();
-                        });
-                      },
-                    ),
-                    Text(metric),
-                  ],
-                ));
-              },
-            ),
+            AbsorbPointer(
+                absorbing: !enabled,
+                child: ListView.builder(
+                  itemCount: metrics.length,
+                  itemBuilder: (context, index) {
+                    String metric = metrics[index];
+                    // _questionnaires[metric] = 3;
+                    return Card(
+                        child: Column(
+                      children: [
+                        Slider(
+                          min: 0.0,
+                          max: 5.0,
+                          divisions: 5,
+                          value: sliderValues[index].toDouble(),
+                          label: sliderValues[index].toString(),
+                          onChanged: !enabled ? null : (double value) {
+                            setState(() {
+                              sliderValues[index] = value.round();
+                            });
+                          },
+                        ),
+                        Text(metric),
+                      ],
+                    ));
+                  },
+                )),
             Align(
                 alignment: Alignment.bottomRight,
                 child: FloatingActionButton.extended(
                     backgroundColor: Colors.lightBlue[300],
                     icon: Icon(Icons.save),
-                    label: Text(MyLocalizations.of(context).submit))),
+                    label: enabled
+                        ? Text(MyLocalizations.of(context).submit)
+                        : Text(MyLocalizations.of(context).change),
+                    onPressed: () {
+                      setState(() {
+                        enabled = !enabled;
+                      });
+                    })),
           ],
         ));
   }
@@ -234,7 +244,7 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
               return;
             }
             selectedMetrics.add(currentlySelectedMetric);
-            setState(() {});              
+            setState(() {});
           },
         ),
         Expanded(

@@ -55,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(MyLocalizations.of(context).hello),
+        title: Text("PsycheAid"),
         elevation: 0.0,
         centerTitle: true,
         actions: <Widget>[

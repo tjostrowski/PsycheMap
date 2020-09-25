@@ -56,6 +56,10 @@ class MyLocalizations {
   String get add {
     return localizedValues[locale.languageCode]['add'];
   }
+
+  String get change {
+    return localizedValues[locale.languageCode]['change'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {
