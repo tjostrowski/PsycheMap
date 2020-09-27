@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:path/path.dart';
-import 'package:psyche_map/db.dart';
 import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
 import 'package:psyche_map/localizations.dart'
     show MyLocalizations, MyLocalizationsDelegate;
@@ -82,21 +81,26 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
       key: introKey,
       pages: [
         PageViewModel(
-          title: "Fractional shares",
-          body:
-              "Instead of having to buy an entire share, invest any amount you want.",
+          title: "PsycheAid",
+          body: MyLocalizations.of(context).introText1,
           // image: _buildImage('img1'),
           decoration: pageDecoration,
         ),
+        PageViewModel(
+          title: MyLocalizations.of(context).metricsTitle,
+          bodyWidget: ConfigurationTab(),          
+          // image: _buildImage('img1'),
+          decoration: pageDecoration,
+        ),    
       ],
       onDone: () => _onIntroEnd(context),
       //onSkip: () => _onIntroEnd(context), // You can override onSkip callback
       showSkipButton: true,
       skipFlex: 0,
       nextFlex: 0,
-      skip: const Text('Skip'),
-      next: const Icon(Icons.arrow_forward),
-      done: const Text('Done', style: TextStyle(fontWeight: FontWeight.w600)),
+      skip: Text(MyLocalizations.of(context).skip),
+      next: Icon(Icons.arrow_forward),
+      done: Text(MyLocalizations.of(context).done, style: TextStyle(fontWeight: FontWeight.w600)),
       dotsDecorator: const DotsDecorator(
         size: Size(10.0, 10.0),
         color: Color(0xFFBDBDBD),
@@ -118,7 +122,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Psyche Map',
+      title: 'PsycheAid',
       theme: ThemeData(
         primarySwatch: Colors.green,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -161,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: Column(children: <Widget>[
+      body: Column(children: [
         Flexible(
             flex: 5,
             child: GestureDetector(

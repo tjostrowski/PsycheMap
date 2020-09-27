@@ -60,6 +60,18 @@ class MyLocalizations {
   String get change {
     return localizedValues[locale.languageCode]['change'];
   }
+
+  String get introText1 {
+    return localizedValues[locale.languageCode]['introText1'];
+  }
+
+  String get skip {
+    return localizedValues[locale.languageCode]['skip'];
+  }
+
+  String get done {
+    return localizedValues[locale.languageCode]['done'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {

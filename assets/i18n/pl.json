@@ -20,5 +20,8 @@
     "monthly": "Miesięczny",
     "searchMetric": "Wyszukaj metrykę",
     "add": "Dodaj",
-    "change": "Zmień"
+    "change": "Zmień",
+    "introText1": "Witaj w PsycheAid. Powiedz nam teraz co chcesz mierzyć (np. poziom stresu albo nastrój). Mierniki są w skali 1-5 albo tak/nie.",
+    "skip": "Pomiń",
+    "done": "Zrobione"
 }

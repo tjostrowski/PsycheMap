@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:psyche_map/db.dart';
@@ -109,11 +111,13 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
                           divisions: 5,
                           value: sliderValues[index].toDouble(),
                           label: sliderValues[index].toString(),
-                          onChanged: !enabled ? null : (double value) {
-                            setState(() {
-                              sliderValues[index] = value.round();
-                            });
-                          },
+                          onChanged: !enabled
+                              ? null
+                              : (double value) {
+                                  setState(() {
+                                    sliderValues[index] = value.round();
+                                  });
+                                },
                         ),
                         Text(metric),
                       ],
@@ -206,6 +210,7 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
 
   @override
   Widget build(BuildContext context) {
+    selectedMetrics = Db.of(context).getMetrics();
     return Column(
       children: [
         Padding(
@@ -247,7 +252,10 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
             setState(() {});
           },
         ),
-        Expanded(
+        OrientationBuilder(builder: (context, orientation) {
+          double heightFactor = (orientation == Orientation.portrait) ? 0.6 : 0.25;
+          return Container(            
+            height: min(MediaQuery.of(context).size.height * heightFactor, 300),
             child: ListView.builder(
                 padding: const EdgeInsets.all(8),
                 itemCount: selectedMetrics.length,
@@ -261,7 +269,9 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
                       child: Text(metric.metricName),
                     ),
                   );
-                })),
+                }),
+          );
+        }),
       ],
     );
   }
