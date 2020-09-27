@@ -1,22 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:introduction_screen/introduction_screen.dart';
+import 'package:path/path.dart';
 import 'package:psyche_map/db.dart';
 import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
 import 'package:psyche_map/localizations.dart'
     show MyLocalizations, MyLocalizationsDelegate;
 import 'package:psyche_map/constants.dart' show languages;
 import 'package:psyche_map/metrics.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'commons.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Map<String, Map<String, dynamic>> localizedValues = await initializeI18n();
-  runApp(MyApp(localizedValues));
+  final String dbName = 'psyche_map_db.db';
+  bool dbExists = await databaseExists(join(await getDatabasesPath(), dbName));
+  if (!dbExists) {
+    runApp(IntroductoryWizard(localizedValues));
+  } else {
+    runApp(MyApp(localizedValues));
+  }  
 }
+
+class IntroductoryWizard extends StatelessWidget {
+  final Map<String, Map<String, dynamic>> localizedValues;
+
+  IntroductoryWizard(this.localizedValues);
+
+  @override
+  Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent),
+    );
+
+    return MaterialApp(
+      title: 'Psyche Map',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: IntroductoryPage(),
+      localizationsDelegates: [
+        MyLocalizationsDelegate(localizedValues),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: languages.map((language) => Locale(language, '')),
+    );
+  }
+}
+
+class IntroductoryPage extends StatefulWidget {
+  @override
+  _IntroductoryPageState createState() => _IntroductoryPageState();
+}
+
+class _IntroductoryPageState extends State<IntroductoryPage> {
+  final introKey = GlobalKey<IntroductionScreenState>();
+
+  void _onIntroEnd(context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => MyHomePage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const bodyStyle = TextStyle(fontSize: 19.0);
+    const pageDecoration = const PageDecoration(
+      titleTextStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w700),
+      bodyTextStyle: bodyStyle,
+      descriptionPadding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+      pageColor: Colors.white,
+      imagePadding: EdgeInsets.zero,
+    );
+
+    return IntroductionScreen(
+      key: introKey,
+      pages: [
+        PageViewModel(
+          title: "Fractional shares",
+          body:
+              "Instead of having to buy an entire share, invest any amount you want.",
+          // image: _buildImage('img1'),
+          decoration: pageDecoration,
+        ),
+      ],
+      onDone: () => _onIntroEnd(context),
+      //onSkip: () => _onIntroEnd(context), // You can override onSkip callback
+      showSkipButton: true,
+      skipFlex: 0,
+      nextFlex: 0,
+      skip: const Text('Skip'),
+      next: const Icon(Icons.arrow_forward),
+      done: const Text('Done', style: TextStyle(fontWeight: FontWeight.w600)),
+      dotsDecorator: const DotsDecorator(
+        size: Size(10.0, 10.0),
+        color: Color(0xFFBDBDBD),
+        activeSize: Size(22.0, 10.0),
+        activeShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25.0)),
+        ),
+      ),
+    );
+  }
+}
+
 
 class MyApp extends StatelessWidget {
   final Map<String, Map<String, dynamic>> localizedValues;
+
   MyApp(this.localizedValues);
 
   @override
@@ -50,7 +146,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    List<DrugPortion> currentDrugPortions = Db.of(context).getCurrentDrugs();
     List<dynamic> metrics = MyLocalizations.of(context).metrics;
 
     return Scaffold(
@@ -106,37 +201,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                   )),
             )),
-        // Flexible(
-        //   flex: 3,
-        //   child: Container(
-        //     margin: EdgeInsets.fromLTRB(20, 10, 20, 0),
-        //     child: Column(
-        //       children: [
-        //         SizedBox(height: 20),
-        //         Expanded(
-        //           child: Container(
-        //             decoration: boxDecoration(),
-        //             padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-        //             child: ListView.builder(
-        //               itemCount: currentDrugPortions.length,
-        //               itemBuilder: (context, index) {
-        //                 DrugPortion portion = currentDrugPortions[index];
-        //                 return Card(
-        //                     child: ListTile(
-        //                   leading: Icon(Icons.healing),
-        //                   title: Text(portion.drugName),
-        //                   subtitle: Text(portion.drugDose),
-        //                   trailing: Text(portion.count.toString()),
-        //                 ));
-        //               },
-        //             ),
-        //           ),
-        //         ),
-        //         SizedBox(height: 20),
-        //       ],
-        //     ),
-        //   ),
-        // ),
         Flexible(
           flex: 2,
           child: Container(
@@ -165,7 +229,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Expanded(
                   child: Container(
-                    decoration: boxDecoration(),
+                    decoration: boxDecoration(),                    
                     child: ListView(children: [
                       SizedBox(height: 30),
                       Icon(Icons.settings),
