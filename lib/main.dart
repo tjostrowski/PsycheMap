@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:path/path.dart';
 import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
@@ -70,9 +71,10 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
   Widget build(BuildContext context) {
     const bodyStyle = TextStyle(fontSize: 19.0);
     const pageDecoration = const PageDecoration(
+      titlePadding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
       titleTextStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w700),
       bodyTextStyle: bodyStyle,
-      descriptionPadding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+      descriptionPadding: EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 16.0),
       pageColor: Colors.white,
       imagePadding: EdgeInsets.zero,
     );
@@ -83,7 +85,7 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
         PageViewModel(
           title: "PsycheAid",
           body: MyLocalizations.of(context).introText1,
-          // image: _buildImage('img1'),
+          image: SvgPicture.asset('assets/images/psychology.svg', width: 200,),
           decoration: pageDecoration,
         ),
         PageViewModel(
@@ -93,12 +95,10 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
           decoration: pageDecoration,
         ),    
       ],
-      onDone: () => _onIntroEnd(context),
-      //onSkip: () => _onIntroEnd(context), // You can override onSkip callback
-      showSkipButton: true,
+      onDone: () => _onIntroEnd(context),      
+      showSkipButton: false,
       skipFlex: 0,
-      nextFlex: 0,
-      skip: Text(MyLocalizations.of(context).skip),
+      nextFlex: 0,      
       next: Icon(Icons.arrow_forward),
       done: Text(MyLocalizations.of(context).done, style: TextStyle(fontWeight: FontWeight.w600)),
       dotsDecorator: const DotsDecorator(

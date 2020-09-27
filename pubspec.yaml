@@ -37,6 +37,8 @@ dependencies:
 
   introduction_screen: ^1.0.9
 
+  flutter_svg: ^0.19.0
+
   sqflite:
   path:
 
@@ -61,6 +63,7 @@ flutter:
   assets:
     - assets/i18n/en.json
     - assets/i18n/pl.json
+    - assets/images/psychology.svg
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
