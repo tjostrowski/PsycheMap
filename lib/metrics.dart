@@ -83,62 +83,71 @@ class ConfigurationTab extends StatefulWidget {
 }
 
 class _QuestionnaireTabState extends State<QuestionnaireTab> {
-  // Map<String, int> _questionnaires = new Map();
-  List<int> sliderValues = [3, 3, 3, 3, 3, 3, 3, 3];
+  List<int> sliderValues;
   bool enabled = true;
 
   @override
   Widget build(BuildContext context) {
-    List<dynamic> metrics = MyLocalizations.of(context).metrics;
-    return Container(
-        decoration: boxDecoration(),
-        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-        child: Stack(
-          children: [
-            AbsorbPointer(
-                absorbing: !enabled,
-                child: ListView.builder(
-                  itemCount: metrics.length,
-                  itemBuilder: (context, index) {
-                    String metric = metrics[index];
-                    // _questionnaires[metric] = 3;
-                    return Card(
-                        child: Column(
-                      children: [
-                        Slider(
-                          min: 0.0,
-                          max: 5.0,
-                          divisions: 5,
-                          value: sliderValues[index].toDouble(),
-                          label: sliderValues[index].toString(),
-                          onChanged: !enabled
-                              ? null
-                              : (double value) {
-                                  setState(() {
-                                    sliderValues[index] = value.round();
-                                  });
-                                },
-                        ),
-                        Text(metric),
-                      ],
-                    ));
-                  },
-                )),
-            Align(
-                alignment: Alignment.bottomRight,
-                child: FloatingActionButton.extended(
-                    backgroundColor: Colors.lightBlue[300],
-                    icon: Icon(Icons.save),
-                    label: enabled
-                        ? Text(MyLocalizations.of(context).submit)
-                        : Text(MyLocalizations.of(context).change),
-                    onPressed: () {
-                      setState(() {
-                        enabled = !enabled;
-                      });
-                    })),
-          ],
-        ));
+    return FutureBuilder<List<Metric>>(
+        future: DbProvider.db.getEnabledMetrics(),
+        initialData: List(),
+        builder: (BuildContext context, AsyncSnapshot<List<Metric>> snapshot) {
+          if (snapshot.hasData) {
+            List<Metric> metrics = snapshot.data;
+            sliderValues = List.filled(metrics.length, 3);
+            return Container(
+                decoration: boxDecoration(),
+                padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                child: Stack(
+                  children: [
+                    ListView.builder(
+                      itemCount: metrics.length,
+                      itemBuilder: (context, index) {
+                        Metric metric = metrics[index];
+                        return Card(
+                            child: Column(
+                          children: [
+                            Slider(
+                              min: 0.0,
+                              max: 5.0,
+                              divisions: 5,
+                              value: sliderValues[index].toDouble(),
+                              label: sliderValues[index].toString(),
+                              onChanged: !enabled
+                                  ? null
+                                  : (double value) {
+                                      setState(() {
+                                        sliderValues[index] = value.round();
+                                      });
+                                    },
+                            ),
+                            Text(MyLocalizations.of(context)
+                                .getMetricName(metric)),
+                          ],
+                        ));
+                      },
+                    ),
+                    Align(
+                        alignment: Alignment.bottomRight,
+                        child: FloatingActionButton.extended(
+                            backgroundColor: Colors.lightBlue[300],
+                            icon: Icon(Icons.save),
+                            label: enabled
+                                ? Text(MyLocalizations.of(context).submit)
+                                : Text(MyLocalizations.of(context).change),
+                            onPressed: () {
+                              setState(() {
+                                enabled = !enabled;
+                              });
+                            })),
+                  ],
+                ));
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        });
   }
 }
 
@@ -170,14 +179,27 @@ class _ChartsTabState extends State<ChartsTab> {
                       _chartType = value;
                     });
                   })),
-          DropdownButton(
-              value: _metric,
-              items: _generateMetricItems(),
-              onChanged: (value) {
-                setState(() {
-                  _metric = value;
-                });
-              }),
+          FutureBuilder<List<Metric>>(
+              future: DbProvider.db.getMetrics(),
+              initialData: List(),
+              builder:
+                  (BuildContext context, AsyncSnapshot<List<Metric>> snapshot) {
+                if (snapshot.hasData) {
+                  List<Metric> metrics = snapshot.data;
+                  return DropdownButton(
+                      value: _metric,
+                      items: _generateMetricItems(metrics),
+                      onChanged: (value) {
+                        setState(() {
+                          _metric = value;
+                        });
+                      });
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              })
         ]),
         _getChart(),
       ],
@@ -190,12 +212,11 @@ class _ChartsTabState extends State<ChartsTab> {
         : monthlyChart(context, "Test");
   }
 
-  List<DropdownMenuItem> _generateMetricItems() {
-    List<dynamic> metrics = MyLocalizations.of(context).metrics;
+  List<DropdownMenuItem> _generateMetricItems(List<Metric> metrics) {
     return metrics
         .asMap()
         .map((index, m) =>
-            MapEntry(index, DropdownMenuItem(child: Text(m), value: index + 1)))
+            MapEntry(index, DropdownMenuItem(child: Text(MyLocalizations.of(context).getMetricName(metrics[index])), value: index + 1)))
         .values
         .toList();
   }
@@ -210,36 +231,53 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
 
   @override
   Widget build(BuildContext context) {
-    selectedMetrics = Db.of(context).getMetrics();
     return Column(
       children: [
         Padding(
             child: new Container(
-                child: TypeAheadField(
-              textFieldConfiguration: TextFieldConfiguration(
-                  autofocus: true,
-                  style: DefaultTextStyle.of(context)
-                      .style
-                      .copyWith(fontStyle: FontStyle.italic),
-                  decoration: InputDecoration(border: OutlineInputBorder()),
-                  controller: this.typeAheadController),
-              suggestionsCallback: (pattern) async {
-                return await Db.of(context).getMetrics().where((element) =>
-                    element.metricName
-                        .toLowerCase()
-                        .startsWith(pattern.toLowerCase()));
-              },
-              itemBuilder: (BuildContext context, Metric suggestion) {
-                return ListTile(
-                  leading: Icon(Icons.reorder),
-                  title: Text(suggestion.metricName),
-                );
-              },
-              onSuggestionSelected: (Metric suggestion) {
-                this.currentlySelectedMetric = suggestion;
-                this.typeAheadController.text = suggestion.metricName;
-              },
-            )),
+              child: FutureBuilder<List<Metric>>(
+                  future: DbProvider.db.getMetrics(),
+                  // initialData: List(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<Metric>> snapshot) {
+                    if (snapshot.hasData) {
+                      List<Metric> metrics = snapshot.data;
+                      return TypeAheadField(
+                        textFieldConfiguration: TextFieldConfiguration(
+                            autofocus: true,
+                            style: DefaultTextStyle.of(context)
+                                .style
+                                .copyWith(fontStyle: FontStyle.italic),
+                            decoration:
+                                InputDecoration(border: OutlineInputBorder()),
+                            controller: this.typeAheadController),
+                        suggestionsCallback: (pattern) async {
+                          return metrics.where((metric) =>
+                              MyLocalizations.of(context)
+                                  .getMetricName(metric)
+                                  .toLowerCase()
+                                  .startsWith(pattern.toLowerCase()));
+                        },
+                        itemBuilder: (BuildContext context, Metric suggestion) {
+                          return ListTile(
+                            title: Text(MyLocalizations.of(context)
+                                .getMetricName(suggestion)),
+                          );
+                        },
+                        onSuggestionSelected: (Metric suggestion) {
+                          this.currentlySelectedMetric = suggestion;
+                          this.typeAheadController.text =
+                              MyLocalizations.of(context)
+                                  .getMetricName(suggestion);
+                        },
+                      );
+                    } else {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                  }),
+            ),
             padding: EdgeInsets.all(16.0)),
         RaisedButton(
           child: Text(MyLocalizations.of(context).add),
@@ -249,12 +287,14 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
               return;
             }
             selectedMetrics.add(currentlySelectedMetric);
+            DbProvider.db.enableMetric(currentlySelectedMetric, true);
             setState(() {});
           },
         ),
         OrientationBuilder(builder: (context, orientation) {
-          double heightFactor = (orientation == Orientation.portrait) ? 0.6 : 0.25;
-          return Container(            
+          double heightFactor =
+              (orientation == Orientation.portrait) ? 0.6 : 0.25;
+          return Container(
             height: min(MediaQuery.of(context).size.height * heightFactor, 300),
             child: ListView.builder(
                 padding: const EdgeInsets.all(8),
@@ -266,7 +306,7 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
                     margin: EdgeInsets.all(2),
                     color: Colors.blue[400],
                     child: Center(
-                      child: Text(metric.metricName),
+                      child: Text(MyLocalizations.of(context).getMetricName(metric)),
                     ),
                   );
                 }),

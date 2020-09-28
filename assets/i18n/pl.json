@@ -1,16 +1,16 @@
 {
     "hello": "Cześć",
-    "metrics": [
-        "Sen",
-        "Nastrój",
-        "Poziom agresji",
-        "Aktywność",
-        "Socjalizacja", 
-        "Poziom stresu",
-        "Inne",       
-        "Inne jeszcze",
-        "Urojenia"
-    ],
+    "metrics": {
+        "DREAM": "Sen",
+        "MOOD": "Nastrój",
+        "AGGRESSION_LEVEL": "Poziom agresji",
+        "ACTIVITY": "Aktywność",
+        "SOCIALIZATION": "Socjalizacja",
+        "STRESS_LEVEL": "Poziom stresu",
+        "SUICIDE_THOUGHTS": "Myśli samobójcze",
+        "DELUSIONS": "Urojenia",
+        "OTHERS": "Inne"    
+    },
     "questionnaire": "Ankieta",
     "stats": "Statystyki",
     "settings": "Ustawienia",

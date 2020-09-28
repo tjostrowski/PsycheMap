@@ -2,6 +2,7 @@ import 'dart:async' show Future;
 import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter/material.dart';
 import 'package:psyche_map/constants.dart';
+import 'package:psyche_map/db.dart';
 
 class MyLocalizations {
   final Map<String, Map<String, dynamic>> localizedValues;
@@ -17,8 +18,12 @@ class MyLocalizations {
     return localizedValues[locale.languageCode]['hello'];
   }
 
-  List<dynamic> get metrics {
-    return localizedValues[locale.languageCode]['metrics'];
+  String getMetricName(Metric metric) {
+    Map<String, dynamic> metrics = localizedValues[locale.languageCode]['metrics'];
+    if (metrics.containsKey(metric.metricAlias)) {
+      return metrics[metric.metricAlias];
+    }
+    return "";
   }
 
   String get questionnaire {

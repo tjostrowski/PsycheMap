@@ -12,17 +12,18 @@ import 'package:psyche_map/metrics.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'commons.dart';
+import 'db.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Map<String, Map<String, dynamic>> localizedValues = await initializeI18n();
   final String dbName = 'psyche_map_db.db';
   bool dbExists = await databaseExists(join(await getDatabasesPath(), dbName));
-  if (!dbExists) {
+  // if (!dbExists) {
     runApp(IntroductoryWizard(localizedValues));
-  } else {
-    runApp(MyApp(localizedValues));
-  }  
+  // } else {
+  //   runApp(MyApp(localizedValues));
+  // }
 }
 
 class IntroductoryWizard extends StatelessWidget {
@@ -37,7 +38,7 @@ class IntroductoryWizard extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'Psyche Map',
+      title: 'PsycheAid',
       theme: ThemeData(
         primarySwatch: Colors.green,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -85,22 +86,25 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
         PageViewModel(
           title: "PsycheAid",
           body: MyLocalizations.of(context).introText1,
-          image: SvgPicture.asset('assets/images/psychology.svg', width: 200,),
+          image: SvgPicture.asset(
+            'assets/images/psychology.svg',
+            width: 200,
+          ),
           decoration: pageDecoration,
         ),
         PageViewModel(
           title: MyLocalizations.of(context).metricsTitle,
-          bodyWidget: ConfigurationTab(),          
-          // image: _buildImage('img1'),
+          bodyWidget: ConfigurationTab(),
           decoration: pageDecoration,
-        ),    
+        ),
       ],
-      onDone: () => _onIntroEnd(context),      
+      onDone: () => _onIntroEnd(context),
       showSkipButton: false,
       skipFlex: 0,
-      nextFlex: 0,      
+      nextFlex: 0,
       next: Icon(Icons.arrow_forward),
-      done: Text(MyLocalizations.of(context).done, style: TextStyle(fontWeight: FontWeight.w600)),
+      done: Text(MyLocalizations.of(context).done,
+          style: TextStyle(fontWeight: FontWeight.w600)),
       dotsDecorator: const DotsDecorator(
         size: Size(10.0, 10.0),
         color: Color(0xFFBDBDBD),
@@ -112,7 +116,6 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
     );
   }
 }
-
 
 class MyApp extends StatelessWidget {
   final Map<String, Map<String, dynamic>> localizedValues;
@@ -150,8 +153,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    List<dynamic> metrics = MyLocalizations.of(context).metrics;
-
     return Scaffold(
       appBar: AppBar(
         title: Text("PsycheAid"),
@@ -169,42 +170,55 @@ class _MyHomePageState extends State<MyHomePage> {
         Flexible(
             flex: 5,
             child: GestureDetector(
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => MetricsPage()));
-              },
-              child: Container(
-                  margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  decoration: boxDecoration(),
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-                  child: GridView.builder(
-                    // padding:
-                    //     EdgeInsets.only(left: 5.0, right: 5.0, top: 5, bottom: 5),
-                    shrinkWrap: false,
-                    itemCount: metrics.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        childAspectRatio: _aspectRatio(context)),
-                    itemBuilder: (context, index) {
-                      final item = metrics[index];
-                      return Card(
-                        child: ListTile(
-                          title: Text(item),
-                          trailing: Container(
-                            width: 15,
-                            height: 15,
-                            decoration: BoxDecoration(
-                                color: (index % 3 == 0) ? Colors.red : Theme.of(context).primaryColor,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(50))),
-                          ),
-                        ),
-                        elevation: 0.5,
-                      );
-                    },
-                  )),
-            )),
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => MetricsPage()));
+                },
+                child: Container(
+                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    decoration: boxDecoration(),
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                    child: FutureBuilder<List<Metric>>(
+                        future: DbProvider.db.getEnabledMetrics(),
+                        initialData: List(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<List<Metric>> snapshot) {
+                          if (snapshot.hasData) {
+                            List<Metric> metrics = snapshot.data;
+                            return GridView.builder(
+                              shrinkWrap: false,
+                              itemCount: metrics.length,
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 1,
+                                      childAspectRatio: _aspectRatio(context)),
+                              itemBuilder: (context, index) {
+                                final item = metrics[index];
+                                return Card(
+                                  child: ListTile(
+                                    title: Text(MyLocalizations.of(context).getMetricName(item)),
+                                    trailing: Container(
+                                      width: 15,
+                                      height: 15,
+                                      decoration: BoxDecoration(
+                                          color: (index % 3 == 0)
+                                              ? Colors.red
+                                              : Theme.of(context).primaryColor,
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(50))),
+                                    ),
+                                  ),
+                                  elevation: 0.5,
+                                );
+                              },
+                            );
+                          } else {
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                        })))),
         Flexible(
           flex: 2,
           child: Container(
@@ -233,7 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Expanded(
                   child: Container(
-                    decoration: boxDecoration(),                    
+                    decoration: boxDecoration(),
                     child: ListView(children: [
                       SizedBox(height: 30),
                       Icon(Icons.settings),
@@ -241,7 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Text(
                         'Ustawienia',
                         textScaleFactor: 1.6,
-                      )),                      
+                      )),
                     ]),
                   ),
                 ),
