@@ -20,7 +20,7 @@ Widget monthlyChart(BuildContext context, String metricName) {
 }
 
 Widget _plotDailyChart(List<MetricValue> metricValues, DateTime fromDate, DateTime toDate, BuildContext context, String metricName) {
-  final List<DataPoint<DateTime>> dataPoints = metricValues.map((mv) => DataPoint<DateTime>(value: mv.value, xAxis: mv.date)).toList();
+  final List<DataPoint<DateTime>> dataPoints = metricValues.map((mv) => DataPoint<DateTime>(value: mv.value.toDouble(), xAxis: mv.date)).toList();
   return Center(
     child: Container(
       color: Colors.green[50],
@@ -43,17 +43,17 @@ Widget _plotDailyChart(List<MetricValue> metricValues, DateTime fromDate, DateTi
                 }              
               }
               if (i == 0) {
-                return metricValues[0].value;
+                return 0.0;
               } else if (i < metricValues.length) {
-                double val1 = metricValues[i - 1].value;
-                double val2 = metricValues[i].value;
+                double val1 = metricValues[i - 1].value.toDouble();
+                double val2 = metricValues[i].value.toDouble();
 
                 int deltaAll = metricValues[i].date.difference(metricValues[i - 1].date).inDays;
                 int delta1 = dateTime.difference(metricValues[i - 1].date).inDays;
 
                 return val1 + (val2-val1)*delta1/deltaAll;                  
               } else {
-                return metricValues.last.value;
+                return 0.0;
               }
             },
           ),          

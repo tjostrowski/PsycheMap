@@ -88,22 +88,24 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Metric>>(
-        future: DbProvider.db.getEnabledMetrics(),
+    DateTime now = DateTime.now();
+    return FutureBuilder<List<MetricValue>>(
+        future: DbProvider.db.getEnabledMetricValues(now, 3),
         initialData: List(),
-        builder: (BuildContext context, AsyncSnapshot<List<Metric>> snapshot) {
+        builder:
+            (BuildContext context, AsyncSnapshot<List<MetricValue>> snapshot) {
           if (snapshot.hasData) {
-            List<Metric> metrics = snapshot.data;
-            sliderValues = List.filled(metrics.length, 3);
+            List<MetricValue> metricValues = snapshot.data;
+            sliderValues = List.filled(metricValues.length, 3);
             return Container(
                 decoration: boxDecoration(),
                 padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
                 child: Stack(
                   children: [
                     ListView.builder(
-                      itemCount: metrics.length,
+                      itemCount: metricValues.length,
                       itemBuilder: (context, index) {
-                        Metric metric = metrics[index];
+                        MetricValue metricValue = metricValues[index];
                         return Card(
                             child: Column(
                           children: [
@@ -122,7 +124,7 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
                                     },
                             ),
                             Text(MyLocalizations.of(context)
-                                .getMetricName(metric)),
+                                .getMetricName(metricValue.metric)),
                           ],
                         ));
                       },
@@ -136,6 +138,16 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
                                 ? Text(MyLocalizations.of(context).submit)
                                 : Text(MyLocalizations.of(context).change),
                             onPressed: () {
+                              if (enabled) {
+                                List<MetricValue> updatedMetricValues = [];
+                                for (int i = 0; i < metricValues.length; i++) {
+                                  MetricValue mv = metricValues[i];
+                                  updatedMetricValues.add(MetricValue(
+                                      mv.metric, sliderValues[i], now));
+                                }
+                                DbProvider.db.saveOrUpdateMetricValues(
+                                    updatedMetricValues, now);
+                              }
                               setState(() {
                                 enabled = !enabled;
                               });
@@ -215,8 +227,12 @@ class _ChartsTabState extends State<ChartsTab> {
   List<DropdownMenuItem> _generateMetricItems(List<Metric> metrics) {
     return metrics
         .asMap()
-        .map((index, m) =>
-            MapEntry(index, DropdownMenuItem(child: Text(MyLocalizations.of(context).getMetricName(metrics[index])), value: index + 1)))
+        .map((index, m) => MapEntry(
+            index,
+            DropdownMenuItem(
+                child: Text(
+                    MyLocalizations.of(context).getMetricName(metrics[index])),
+                value: index + 1)))
         .values
         .toList();
   }
@@ -306,7 +322,8 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
                     margin: EdgeInsets.all(2),
                     color: Colors.blue[400],
                     child: Center(
-                      child: Text(MyLocalizations.of(context).getMetricName(metric)),
+                      child: Text(
+                          MyLocalizations.of(context).getMetricName(metric)),
                     ),
                   );
                 }),

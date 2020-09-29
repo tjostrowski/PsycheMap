@@ -1,11 +1,14 @@
 import 'dart:io';
 
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DbProvider {
   static final String _dbName = 'psyche_map_db.db';
   static final DbProvider db = DbProvider._();
+
+  static final DateFormat _formatter = DateFormat('yyyy-MM-dd');
 
   static Database _database;
 
@@ -42,7 +45,18 @@ class DbProvider {
         });
         batch.commit();
       },
-      version: 1,
+      onUpgrade: (db, oldVersion, newVersion) {
+        if (oldVersion == 1 && newVersion == 2) {
+          db.execute("DROP TABLE IF EXISTS metrics_values");
+          db.execute("CREATE TABLE metrics_values" +
+              "(metric_id INTEGER NOT NULL," +
+              "value INTEGER NOT NULL," +
+              "timestamp TEXT NOT NULL," +
+              "PRIMARY KEY (metric_id, timestamp)," +
+              "FOREIGN KEY (metric_id) REFERENCES metrics_config(id))");
+        }
+      },
+      version: 2,
     );
   }
 
@@ -52,12 +66,12 @@ class DbProvider {
     final List<Map<String, dynamic>> configs =
         await database.query('metrics_config');
 
-    stdout.writeln('Configs size: ' + configs.length.toString());    
+    stdout.writeln('Configs size: ' + configs.length.toString());
 
     return List.generate(
         configs.length,
-        (i) => Metric(
-            configs[i]['metric_alias'], _toBool(configs[i]['range_one_to_five']),
+        (i) => Metric(configs[i]['metric_alias'],
+            _toBool(configs[i]['range_one_to_five']),
             isEnabled: _toBool(configs[i]['enabled']), id: configs[i]['id']));
   }
 
@@ -69,40 +83,98 @@ class DbProvider {
 
     return List.generate(
         configs.length,
-        (i) => Metric(
-            configs[i]['metric_alias'], _toBool(configs[i]['range_one_to_five']),
+        (i) => Metric(configs[i]['metric_alias'],
+            _toBool(configs[i]['range_one_to_five']),
             isEnabled: _toBool(configs[i]['enabled']), id: configs[i]['id']));
   }
 
-  bool _toBool(int sqliteValue) {
-    return sqliteValue == 1; 
+  Future<List<MetricValue>> getEnabledMetricValues(
+      DateTime dateTime, int defaultValue) async {
+    final Database database = await this.database;
+
+    String formattedDate = _toDateFormatted(dateTime);
+    final List<Map<String, dynamic>> values = await database.rawQuery(
+        '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mv.value, mv.timestamp 
+          FROM metrics_values mv INNER JOIN metrics_config mc ON mv.metric_id = mc.id          
+          WHERE mv.timestamp = "$formattedDate" AND mc.enabled = 1''');
+
+    if (values.length == 0) {
+      List<Metric> metrics = await getEnabledMetrics();
+      return Future<List<MetricValue>>.value(metrics
+          .map((metric) => MetricValue(metric, defaultValue, dateTime))
+          .toList());
+    }
+
+    return List.generate(
+        values.length,
+        (i) => MetricValue(
+            Metric(values[i]['metric_alias'],
+                _toBool(values[i]['range_one_to_five']),
+                isEnabled: _toBool(values[i]['enabled']), id: values[i]['id']),
+            values[i]['value'],
+            _fromDateFormatted(values[i]['timestamp'])));
   }
 
-  Future<void> enableMetric(Metric config, bool enable) async {
+  Future<void> saveOrUpdateMetricValues(
+      List<MetricValue> values, DateTime dateTime) async {
+    final Database database = await this.database;
+    String formattedDate = _toDateFormatted(dateTime);
+
+    for (MetricValue val in values) {
+      final int updated = await database.update(
+          'metrics_values', {'value': val.value},
+          where: "timestamp = ? AND metric_id = ?",
+          whereArgs: [formattedDate, val.metric.id]);
+      if (updated == 0) {
+        await database.insert(
+            'metrics_values',
+            {
+              'metric_id': val.metric.id,
+              'value': val.value,
+              'timestamp': formattedDate
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+    }
+  }
+
+  bool _toBool(int sqliteValue) {
+    return sqliteValue == 1;
+  }
+
+  String _toDateFormatted(DateTime dateTime) {
+    return _formatter.format(dateTime);
+  }
+
+  DateTime _fromDateFormatted(String dateTimeStr) {
+    return _formatter.parse(dateTimeStr);
+  }
+
+  Future<void> enableMetric(Metric metric, bool enable) async {
     final Database database = await this.database;
 
     await database.update('metrics_config', {'enabled': enable ? 1 : 0},
-        where: "id = ?", whereArgs: [config.id]);
+        where: "id = ?", whereArgs: [metric.id]);
   }
 
   List<MetricValue> getMetricValuesForLastWeek(Metric metric) {
     final now = DateTime.now();
     return [
-      MetricValue(metric, 1.0, now.subtract(Duration(days: 6))),
-      MetricValue(metric, 1.0, now.subtract(Duration(days: 5))),
-      MetricValue(metric, 3.0, now.subtract(Duration(days: 3))),
-      MetricValue(metric, 3.0, now.subtract(Duration(days: 1))),
+      MetricValue(metric, 1, now.subtract(Duration(days: 6))),
+      MetricValue(metric, 1, now.subtract(Duration(days: 5))),
+      MetricValue(metric, 3, now.subtract(Duration(days: 3))),
+      MetricValue(metric, 3, now.subtract(Duration(days: 1))),
     ];
   }
 
   List<MetricValue> getMetricValuesForLastMonth(Metric metric) {
     final now = DateTime.now();
     return [
-      MetricValue(metric, 1.0, now.subtract(Duration(days: 20))),
-      MetricValue(metric, 1.0, now.subtract(Duration(days: 15))),
-      MetricValue(metric, 1.0, now.subtract(Duration(days: 10))),
-      MetricValue(metric, 3.0, now.subtract(Duration(days: 5))),
-      MetricValue(metric, 5.0, now.subtract(Duration(days: 1))),
+      MetricValue(metric, 1, now.subtract(Duration(days: 20))),
+      MetricValue(metric, 1, now.subtract(Duration(days: 15))),
+      MetricValue(metric, 1, now.subtract(Duration(days: 10))),
+      MetricValue(metric, 3, now.subtract(Duration(days: 5))),
+      MetricValue(metric, 5, now.subtract(Duration(days: 1))),
     ];
   }
 }
@@ -133,7 +205,7 @@ class Metric {
 
 class MetricValue {
   final Metric metric;
-  final double value;
+  final int value;
   final DateTime date;
 
   MetricValue(this.metric, this.value, this.date);
