@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:path/path.dart';
 import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
@@ -20,7 +21,7 @@ void main() async {
   final String dbName = 'psyche_map_db.db';
   bool dbExists = await databaseExists(join(await getDatabasesPath(), dbName));
   // if (!dbExists) {
-    runApp(IntroductoryWizard(localizedValues));
+  runApp(IntroductoryWizard(localizedValues));
   // } else {
   //   runApp(MyApp(localizedValues));
   // }
@@ -158,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text("PsycheAid"),
         elevation: 0.0,
         centerTitle: true,
-        actions: <Widget>[
+        actions: [
           IconButton(
             onPressed: () {},
             icon: Icon(Icons.menu),
@@ -169,56 +170,58 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Column(children: [
         Flexible(
             flex: 5,
-            child: GestureDetector(
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => MetricsPage()));
-                },
-                child: Container(
-                    margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    decoration: boxDecoration(),
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-                    child: FutureBuilder<List<Metric>>(
-                        future: DbProvider.db.getEnabledMetrics(),
-                        initialData: List(),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<List<Metric>> snapshot) {
-                          if (snapshot.hasData) {
-                            List<Metric> metrics = snapshot.data;
-                            return GridView.builder(
-                              shrinkWrap: false,
-                              itemCount: metrics.length,
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 1,
-                                      childAspectRatio: _aspectRatio(context)),
-                              itemBuilder: (context, index) {
-                                final item = metrics[index];
-                                return Card(
-                                  child: ListTile(
-                                    title: Text(MyLocalizations.of(context).getMetricName(item)),
-                                    trailing: Container(
-                                      width: 15,
-                                      height: 15,
-                                      decoration: BoxDecoration(
-                                          color: (index % 3 == 0)
-                                              ? Colors.red
-                                              : Theme.of(context).primaryColor,
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(50))),
-                                    ),
-                                  ),
-                                  elevation: 0.5,
-                                );
-                              },
+            child: Container(
+                margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                decoration: boxDecoration(),
+                alignment: Alignment.center,
+                padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                child: FutureBuilder<List<Metric>>(
+                    future: DbProvider.db.getEnabledMetrics(),
+                    initialData: List(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<Metric>> snapshot) {
+                      if (snapshot.hasData) {
+                        List<Metric> metrics = snapshot.data;
+                        return GridView.builder(
+                          shrinkWrap: false,
+                          itemCount: metrics.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 1,
+                                  childAspectRatio: _aspectRatio(context)),
+                          itemBuilder: (context, index) {
+                            final metric = metrics[index];
+                            return Card(
+                              child: ListTile(
+                                title: Text(MyLocalizations.of(context)
+                                    .getMetricName(metric)),
+                                trailing: Container(
+                                  width: 15,
+                                  height: 15,
+                                  decoration: BoxDecoration(
+                                      color: (index % 3 == 0)
+                                          ? Colors.red
+                                          : Theme.of(context).primaryColor,
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(50))),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ChartsPage(metric)));
+                                },
+                              ),
+                              elevation: 0.5,
                             );
-                          } else {
-                            return Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-                        })))),
+                          },
+                        );
+                      } else {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                    }))),
         Flexible(
           flex: 2,
           child: Container(
@@ -227,36 +230,55 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Row(
               children: [
                 Expanded(
-                  child: Container(
-                    decoration: boxDecoration(),
-                    margin: EdgeInsets.fromLTRB(0, 0, 10, 0),
-                    child: ListView(children: [
-                      SizedBox(height: 30),
-                      Icon(Icons.question_answer),
-                      Center(
-                          child: Text(
-                        'Ankieta',
-                        textScaleFactor: 1.6,
+                  child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => QuestionnairePage()));
+                      },
+                      child: Container(
+                        decoration: boxDecoration(),
+                        margin: EdgeInsets.fromLTRB(0, 0, 10, 0),
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.question_answer),
+                              Center(
+                                  child: Text(
+                                MyLocalizations.of(context).questionnaire,
+                                textScaleFactor: 1.6,
+                              )),
+                              Center(
+                                  child: Text(
+                                DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                              )),
+                            ]),
                       )),
-                      Center(
-                          child: Text(
-                        '27-10-2020',
-                      )),
-                    ]),
-                  ),
                 ),
                 Expanded(
-                  child: Container(
-                    decoration: boxDecoration(),
-                    child: ListView(children: [
-                      SizedBox(height: 30),
-                      Icon(Icons.settings),
-                      Center(
-                          child: Text(
-                        'Ustawienia',
-                        textScaleFactor: 1.6,
-                      )),
-                    ]),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ConfigurationPage()));
+                    },
+                    child: Container(
+                      decoration: boxDecoration(),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(Icons.settings),
+                            Center(
+                                child: Text(
+                              MyLocalizations.of(context).settings,
+                              textScaleFactor: 1.6,
+                            )),
+                          ]),
+                    ),
                   ),
                 ),
               ],

@@ -8,60 +8,16 @@ import 'package:psyche_map/localizations.dart';
 import 'commons.dart';
 import 'metrics_chart.dart';
 
-class MetricsPage extends StatefulWidget {
-  MetricsPage({Key key}) : super(key: key);
-
-  State<StatefulWidget> createState() => _MetricsPageState();
-}
-
-class _MetricsPageState extends State<MetricsPage>
-    with SingleTickerProviderStateMixin {
-  TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(
-      length: 3,
-      vsync: this,
-    );
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class QuestionnairePage extends StatelessWidget {
+  QuestionnairePage({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(MyLocalizations.of(context).metricsTitle),
-      ),
-      body: QuestionnaireTab(),
-      // TabBarView(children: [
-      //   QuestionnaireTab(),
-      //   ChartsTab(),
-      //   ConfigurationTab(),
-      // ], controller: _tabController),
-      // bottomNavigationBar: Material(
-      //     color: Colors.green,
-      //     child: TabBar(
-      //       tabs: [
-      //         Tab(
-      //             icon: Icon(Icons.question_answer),
-      //             text: MyLocalizations.of(context).questionnaire),
-      //         Tab(
-      //             icon: Icon(Icons.show_chart),
-      //             text: MyLocalizations.of(context).stats),
-      //         Tab(
-      //             icon: Icon(Icons.settings),
-      //             text: MyLocalizations.of(context).settings)
-      //       ],
-      //       controller: _tabController,
-      //     )),
-    );
+        appBar: AppBar(
+          title: Text(MyLocalizations.of(context).questionnaire),
+        ),
+        body: QuestionnaireTab());
   }
 }
 
@@ -71,10 +27,38 @@ class QuestionnaireTab extends StatefulWidget {
   State<StatefulWidget> createState() => _QuestionnaireTabState();
 }
 
+class ChartsPage extends StatelessWidget {
+  final Metric metric;
+
+  ChartsPage(this.metric, {Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(MyLocalizations.of(context).metricsTitle),
+        ),
+        body: ChartsTab(metric: metric));
+  }
+}
+
 class ChartsTab extends StatefulWidget {
-  ChartsTab({Key key}) : super(key: key);
+  final Metric metric;
+
+  ChartsTab({this.metric, Key key}) : super(key: key);
 
   State<StatefulWidget> createState() => _ChartsTabState();
+}
+
+class ConfigurationPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(MyLocalizations.of(context).settings),
+        ),
+        body: ConfigurationTab());
+  }
 }
 
 class ConfigurationTab extends StatefulWidget {
@@ -85,7 +69,7 @@ class ConfigurationTab extends StatefulWidget {
 
 class _QuestionnaireTabState extends State<QuestionnaireTab> {
   bool enabled = true;
-  
+
   DateTime _now;
 
   _QuestionnaireTabState() {
@@ -98,14 +82,15 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
         future: DbProvider.db.getEnabledMetricValues(_now, 3),
         builder:
             (BuildContext context, AsyncSnapshot<List<MetricValue>> snapshot) {
-          if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
-            List<MetricValue> metricValues = snapshot.data;            
+          if (snapshot.hasData &&
+              snapshot.connectionState == ConnectionState.done) {
+            List<MetricValue> metricValues = snapshot.data;
             List<int> sliderValues =
                 metricValues.map((mv) => mv.value).toList();
             List<String> sliderNames = metricValues
                 .map((mv) =>
                     MyLocalizations.of(context).getMetricName(mv.metric))
-                .toList();                 
+                .toList();
             return Container(
                 decoration: boxDecoration(),
                 padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
@@ -130,15 +115,14 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
                                 }
                                 await DbProvider.db.saveOrUpdateMetricValues(
                                     updatedMetricValues, _now);
-                              }                                     
+                              }
                               setState(() {
                                 enabled = !enabled;
                               });
                             })),
                   ],
                 ));
-          }
-           else {
+          } else {
             return Center(
               child: CircularProgressIndicator(),
             );
@@ -192,7 +176,7 @@ class _SlidersListState extends State<SlidersList> {
 
 class _ChartsTabState extends State<ChartsTab> {
   int _chartType = 1;
-  int _metric = 1;
+  int _metricIdx = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -223,16 +207,23 @@ class _ChartsTabState extends State<ChartsTab> {
               initialData: List(),
               builder:
                   (BuildContext context, AsyncSnapshot<List<Metric>> snapshot) {
-                if (snapshot.hasData) {
+                if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
                   List<Metric> metrics = snapshot.data;
+                  if (widget.metric != null) {
+                    _metricIdx = metrics.indexWhere((m) => widget.metric.id == m.id) + 1;
+                    if (_metricIdx < 1) {
+                      _metricIdx = 1;
+                    }
+                  }
                   return DropdownButton(
-                      value: _metric,
-                      items: _generateMetricItems(metrics),
-                      onChanged: (value) {
-                        setState(() {
-                          _metric = value;
-                        });
+                    value: _metricIdx,
+                    items: _generateMetricItems(metrics),
+                    onChanged: (value) {
+                      setState(() {
+                        _metricIdx = value;
                       });
+                    },
+                  );
                 } else {
                   return Center(
                     child: CircularProgressIndicator(),
@@ -277,7 +268,7 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
     return Column(
       children: [
         Padding(
-            child: new Container(
+            child: Container(
               child: FutureBuilder<List<Metric>>(
                   future: DbProvider.db.getMetrics(),
                   // initialData: List(),
@@ -313,6 +304,7 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
                               MyLocalizations.of(context)
                                   .getMetricName(suggestion);
                         },
+                        hideOnLoading: true,
                       );
                     } else {
                       return Center(
