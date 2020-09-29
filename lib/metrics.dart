@@ -39,27 +39,28 @@ class _MetricsPageState extends State<MetricsPage>
       appBar: AppBar(
         title: Text(MyLocalizations.of(context).metricsTitle),
       ),
-      body: TabBarView(children: [
-        QuestionnaireTab(),
-        ChartsTab(),
-        ConfigurationTab(),
-      ], controller: _tabController),
-      bottomNavigationBar: Material(
-          color: Colors.green,
-          child: TabBar(
-            tabs: [
-              Tab(
-                  icon: Icon(Icons.question_answer),
-                  text: MyLocalizations.of(context).questionnaire),
-              Tab(
-                  icon: Icon(Icons.show_chart),
-                  text: MyLocalizations.of(context).stats),
-              Tab(
-                  icon: Icon(Icons.settings),
-                  text: MyLocalizations.of(context).settings)
-            ],
-            controller: _tabController,
-          )),
+      body: QuestionnaireTab(),
+      // TabBarView(children: [
+      //   QuestionnaireTab(),
+      //   ChartsTab(),
+      //   ConfigurationTab(),
+      // ], controller: _tabController),
+      // bottomNavigationBar: Material(
+      //     color: Colors.green,
+      //     child: TabBar(
+      //       tabs: [
+      //         Tab(
+      //             icon: Icon(Icons.question_answer),
+      //             text: MyLocalizations.of(context).questionnaire),
+      //         Tab(
+      //             icon: Icon(Icons.show_chart),
+      //             text: MyLocalizations.of(context).stats),
+      //         Tab(
+      //             icon: Icon(Icons.settings),
+      //             text: MyLocalizations.of(context).settings)
+      //       ],
+      //       controller: _tabController,
+      //     )),
     );
   }
 }
@@ -83,52 +84,34 @@ class ConfigurationTab extends StatefulWidget {
 }
 
 class _QuestionnaireTabState extends State<QuestionnaireTab> {
-  List<int> sliderValues;
   bool enabled = true;
+  
+  DateTime _now;
+
+  _QuestionnaireTabState() {
+    _now = DateTime.now();
+  }
 
   @override
   Widget build(BuildContext context) {
-    DateTime now = DateTime.now();
     return FutureBuilder<List<MetricValue>>(
-        future: DbProvider.db.getEnabledMetricValues(now, 3),
-        initialData: List(),
+        future: DbProvider.db.getEnabledMetricValues(_now, 3),
         builder:
             (BuildContext context, AsyncSnapshot<List<MetricValue>> snapshot) {
-          if (snapshot.hasData) {
-            List<MetricValue> metricValues = snapshot.data;
-            sliderValues = List.filled(metricValues.length, 3);
+          if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
+            List<MetricValue> metricValues = snapshot.data;            
+            List<int> sliderValues =
+                metricValues.map((mv) => mv.value).toList();
+            List<String> sliderNames = metricValues
+                .map((mv) =>
+                    MyLocalizations.of(context).getMetricName(mv.metric))
+                .toList();                 
             return Container(
                 decoration: boxDecoration(),
                 padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
                 child: Stack(
                   children: [
-                    ListView.builder(
-                      itemCount: metricValues.length,
-                      itemBuilder: (context, index) {
-                        MetricValue metricValue = metricValues[index];
-                        return Card(
-                            child: Column(
-                          children: [
-                            Slider(
-                              min: 0.0,
-                              max: 5.0,
-                              divisions: 5,
-                              value: sliderValues[index].toDouble(),
-                              label: sliderValues[index].toString(),
-                              onChanged: !enabled
-                                  ? null
-                                  : (double value) {
-                                      setState(() {
-                                        sliderValues[index] = value.round();
-                                      });
-                                    },
-                            ),
-                            Text(MyLocalizations.of(context)
-                                .getMetricName(metricValue.metric)),
-                          ],
-                        ));
-                      },
-                    ),
+                    SlidersList(sliderValues, sliderNames, enabled),
                     Align(
                         alignment: Alignment.bottomRight,
                         child: FloatingActionButton.extended(
@@ -137,29 +120,73 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
                             label: enabled
                                 ? Text(MyLocalizations.of(context).submit)
                                 : Text(MyLocalizations.of(context).change),
-                            onPressed: () {
+                            onPressed: () async {
                               if (enabled) {
                                 List<MetricValue> updatedMetricValues = [];
                                 for (int i = 0; i < metricValues.length; i++) {
                                   MetricValue mv = metricValues[i];
                                   updatedMetricValues.add(MetricValue(
-                                      mv.metric, sliderValues[i], now));
+                                      mv.metric, sliderValues[i], _now));
                                 }
-                                DbProvider.db.saveOrUpdateMetricValues(
-                                    updatedMetricValues, now);
-                              }
+                                await DbProvider.db.saveOrUpdateMetricValues(
+                                    updatedMetricValues, _now);
+                              }                                     
                               setState(() {
                                 enabled = !enabled;
                               });
                             })),
                   ],
                 ));
-          } else {
+          }
+           else {
             return Center(
               child: CircularProgressIndicator(),
             );
           }
         });
+  }
+}
+
+class SlidersList extends StatefulWidget {
+  final List<int> sliderValues;
+  final List<String> sliderNames;
+  final bool enabled;
+
+  SlidersList(this.sliderValues, this.sliderNames, this.enabled, {Key key})
+      : super(key: key);
+
+  State<StatefulWidget> createState() => _SlidersListState();
+}
+
+class _SlidersListState extends State<SlidersList> {
+  @override
+  Widget build(BuildContext context) {
+    List<int> sliderValues = widget.sliderValues;
+    return ListView.builder(
+      itemCount: sliderValues.length,
+      itemBuilder: (context, index) {
+        return Card(
+            child: Column(
+          children: [
+            Slider(
+              min: 0.0,
+              max: 5.0,
+              divisions: 5,
+              value: sliderValues[index].toDouble(),
+              label: sliderValues[index].toString(),
+              onChanged: !widget.enabled
+                  ? null
+                  : (double value) {
+                      setState(() {
+                        sliderValues[index] = value.round();
+                      });
+                    },
+            ),
+            Text(widget.sliderNames[index]),
+          ],
+        ));
+      },
+    );
   }
 }
 
