@@ -74,7 +74,9 @@ class ConfigurationPage extends StatelessWidget {
                             children: [
                               RaisedButton(
                                 child: Text(MyLocalizations.of(context).reset),
-                                onPressed: () { DbProvider.db.resetDb(); },
+                                onPressed: () {
+                                  DbProvider.db.resetDb();
+                                },
                               ),
                             ],
                           )
@@ -294,7 +296,26 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
 
   Metric currentlySelectedMetric;
 
+  bool loadingMetrics = true;
+  List<Metric> metrics = [];
+  bool loadingSelectedMetrics = true;
   List<Metric> selectedMetrics = [];
+
+  @override
+  void initState() {
+    DbProvider.db.getMetrics().then((metrics) {
+      setState(() {
+        this.metrics = metrics;
+        loadingMetrics = false;
+      });
+    });
+    DbProvider.db.getEnabledMetrics().then((metrics) {
+      setState(() {
+        this.selectedMetrics = metrics;
+        loadingSelectedMetrics = false;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -302,14 +323,8 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
       children: [
         Padding(
             child: Container(
-              child: FutureBuilder<List<Metric>>(
-                  future: DbProvider.db.getMetrics(),
-                  // initialData: List(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<List<Metric>> snapshot) {
-                    if (snapshot.hasData) {
-                      List<Metric> metrics = snapshot.data;
-                      return TypeAheadField(
+                child: !loadingMetrics
+                    ? TypeAheadField(
                         textFieldConfiguration: TextFieldConfiguration(
                             autofocus: true,
                             style: DefaultTextStyle.of(context)
@@ -318,7 +333,7 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
                             decoration:
                                 InputDecoration(border: OutlineInputBorder()),
                             controller: this.typeAheadController),
-                        suggestionsCallback: (pattern) async {
+                        suggestionsCallback: (pattern) async {                          
                           return metrics.where((metric) =>
                               MyLocalizations.of(context)
                                   .getMetricName(metric)
@@ -338,14 +353,10 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
                                   .getMetricName(suggestion);
                         },
                         hideOnLoading: true,
-                      );
-                    } else {
-                      return Center(
+                      )
+                    : Center(
                         child: CircularProgressIndicator(),
-                      );
-                    }
-                  }),
-            ),
+                      )),
             padding: EdgeInsets.all(16.0)),
         RaisedButton(
           child: Text(MyLocalizations.of(context).add),
@@ -362,24 +373,29 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
         OrientationBuilder(builder: (context, orientation) {
           double heightFactor =
               (orientation == Orientation.portrait) ? 0.6 : 0.25;
-          return Container(
-            height: min(MediaQuery.of(context).size.height * heightFactor, 300),
-            child: ListView.builder(
-                padding: const EdgeInsets.all(8),
-                itemCount: selectedMetrics.length,
-                itemBuilder: (BuildContext context, int index) {
-                  Metric metric = selectedMetrics[index];
-                  return Container(
-                    height: 50,
-                    margin: EdgeInsets.all(2),
-                    color: Colors.blue[400],
-                    child: Center(
-                      child: Text(
-                          MyLocalizations.of(context).getMetricName(metric)),
-                    ),
-                  );
-                }),
-          );
+          return !loadingSelectedMetrics
+              ? Container(
+                  height: min(
+                      MediaQuery.of(context).size.height * heightFactor, 300),
+                  child: ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: selectedMetrics.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        Metric metric = selectedMetrics[index];
+                        return Container(
+                          height: 50,
+                          margin: EdgeInsets.all(2),
+                          color: Colors.blue[400],
+                          child: Center(
+                            child: Text(MyLocalizations.of(context)
+                                .getMetricName(metric)),
+                          ),
+                        );
+                      }),
+                )
+              : Center(
+                  child: CircularProgressIndicator(),
+                );
         }),
       ],
     );
