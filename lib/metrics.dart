@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:psyche_map/db.dart';
@@ -376,6 +374,8 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
             selectedMetrics.contains(currentlySelectedMetric)) {
           return;
         }
+
+
         selectedMetrics.add(currentlySelectedMetric);
         DbProvider.db.enableMetric(currentlySelectedMetric, true);
         setState(() {});

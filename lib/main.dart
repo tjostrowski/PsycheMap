@@ -93,7 +93,7 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
         ),
         PageViewModel(
           title: MyLocalizations.of(context).metricsTitle,
-          bodyWidget: ConfigurationTab(),
+          bodyWidget: Container(height: MediaQuery.of(context).size.height * 0.8, child: ConfigurationTab()),
           decoration: pageDecoration,
         ),
       ],
