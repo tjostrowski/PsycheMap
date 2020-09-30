@@ -16,7 +16,8 @@ import 'db.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Map<String, Map<String, dynamic>> localizedValues = await initializeI18n();
-  bool wizardNotNecessary = await DbProvider.db.exists() && await DbProvider.db.areMetricsConfigured();
+  bool wizardNotNecessary = await DbProvider.db.exists() &&
+      await DbProvider.db.areMetricsConfigured();
   if (wizardNotNecessary) {
     runApp(MyApp(localizedValues));
   } else {
@@ -164,129 +165,151 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: Column(children: [
-        Flexible(
-            flex: 5,
-            child: Container(
-                margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                decoration: boxDecoration(),
+      body: OrientationBuilder(builder: (context, orientation) {
+        bool isPortrait = (orientation == Orientation.portrait);
+        if (isPortrait) {
+          return Column(children: [
+            Flexible(flex: 5, child: _metricsWidget(isPortrait)),
+            Flexible(
+              flex: 2,
+              child: Container(
+                margin: EdgeInsets.fromLTRB(20, 5, 20, 10),
                 alignment: Alignment.center,
-                padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-                child: FutureBuilder<List<Metric>>(
-                    future: DbProvider.db.getEnabledMetrics(),
-                    initialData: List(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<List<Metric>> snapshot) {
-                      if (snapshot.hasData) {
-                        List<Metric> metrics = snapshot.data;
-                        return GridView.builder(
-                          shrinkWrap: false,
-                          itemCount: metrics.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 1,
-                                  childAspectRatio: _aspectRatio(context)),
-                          itemBuilder: (context, index) {
-                            final metric = metrics[index];
-                            return Card(
-                              child: ListTile(
-                                title: Text(MyLocalizations.of(context)
-                                    .getMetricName(metric)),
-                                trailing: Container(
-                                  width: 15,
-                                  height: 15,
-                                  decoration: BoxDecoration(
-                                      color: (index % 3 == 0)
-                                          ? Colors.red
-                                          : Theme.of(context).primaryColor,
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(50))),
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => ChartsPage(metric)));
-                                },
-                              ),
-                              elevation: 0.5,
-                            );
-                          },
-                        );
-                      } else {
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-                    }))),
-        Flexible(
-          flex: 2,
-          child: Container(
-            margin: EdgeInsets.fromLTRB(20, 5, 20, 10),
-            alignment: Alignment.center,
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => QuestionnairePage()));
-                      },
-                      child: Container(
-                        decoration: boxDecoration(),
-                        margin: EdgeInsets.fromLTRB(0, 0, 10, 0),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(Icons.question_answer),
-                              Center(
-                                  child: Text(
-                                MyLocalizations.of(context).questionnaire,
-                                textScaleFactor: 1.6,
-                              )),
-                              Center(
-                                  child: Text(
-                                DateFormat('yyyy-MM-dd').format(DateTime.now()),
-                              )),
-                            ]),
-                      )),
+                child: Row(
+                  children: [_questionnaire(isPortrait), _settings(isPortrait)],
                 ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ConfigurationPage()));
-                    },
-                    child: Container(
-                      decoration: boxDecoration(),
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(Icons.settings),
-                            Center(
-                                child: Text(
-                              MyLocalizations.of(context).settings,
-                              textScaleFactor: 1.6,
-                            )),
-                          ]),
-                    ),
-                  ),
+              ),
+            )
+          ]);
+        } else { // landscape
+          return Row(children: [
+            Flexible(flex: 5, child: _metricsWidget(isPortrait)),
+            Flexible(
+              flex: 2,
+              child: Container(
+                margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                alignment: Alignment.center,
+                child: Column(
+                  children: [_questionnaire(isPortrait), _settings(isPortrait)],
                 ),
-              ],
-            ),
-          ),
-        ),
-      ]),
+              ),
+            )
+          ],);
+        }
+      }),
     );
   }
 
-  double _aspectRatio(BuildContext context) {
+  Widget _metricsWidget(bool isPortrait) {
+    return Container(
+        margin: isPortrait ? EdgeInsets.fromLTRB(20, 20, 20, 0) : EdgeInsets.fromLTRB(10, 5, 10, 5),
+        decoration: boxDecoration(),
+        alignment: Alignment.center,
+        padding: isPortrait ? EdgeInsets.fromLTRB(10, 5, 10, 5) : EdgeInsets.fromLTRB(0, 5, 0, 5),
+        child: FutureBuilder<List<Metric>>(
+            future: DbProvider.db.getEnabledMetrics(),
+            initialData: List(),
+            builder:
+                (BuildContext context, AsyncSnapshot<List<Metric>> snapshot) {
+              if (snapshot.hasData) {
+                List<Metric> metrics = snapshot.data;
+                return GridView.builder(
+                  shrinkWrap: false,
+                  itemCount: metrics.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 1,
+                      childAspectRatio: _aspectRatio(context, isPortrait)),
+                  itemBuilder: (context, index) {
+                    final metric = metrics[index];
+                    return Card(                       
+                      child: ListTile(
+                        title: Text(
+                            MyLocalizations.of(context).getMetricName(metric)),
+                        trailing: Container(
+                          width: 15,
+                          height: 15,
+                          decoration: BoxDecoration(
+                              color: (index % 3 == 0)
+                                  ? Colors.red
+                                  : Theme.of(context).primaryColor,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(50))),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChartsPage(metric)));
+                        },
+                      ),
+                      elevation: 0.5,
+                    );
+                  },
+                );
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            }));
+  }
+
+  Widget _questionnaire(bool isPortrait) {
+    return Expanded(
+      child: GestureDetector(
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => QuestionnairePage()));
+          },
+          child: Container(
+            decoration: boxDecoration(),
+            margin: isPortrait ? EdgeInsets.fromLTRB(0, 0, 10, 0) : EdgeInsets.fromLTRB(0, 5, 2, 5),
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(Icons.question_answer),
+                  Center(
+                      child: Text(
+                    MyLocalizations.of(context).questionnaire,
+                    textScaleFactor: 1.6,
+                  )),
+                  Center(
+                      child: Text(
+                    DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                  )),
+                ]),
+          )),
+    );
+  }
+
+  Widget _settings(bool isPortrait) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => ConfigurationPage()));
+        },
+        child: Container(
+          decoration: boxDecoration(),
+          margin: isPortrait ? EdgeInsets.fromLTRB(0, 0, 0, 0) : EdgeInsets.fromLTRB(0, 0, 2, 5),
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(Icons.settings),
+                Center(
+                    child: Text(
+                  MyLocalizations.of(context).settings,
+                  textScaleFactor: 1.6,
+                )),
+              ]),
+        ),
+      ),
+    );
+  }
+
+  double _aspectRatio(BuildContext context, bool isPortrait) {
     double crossAxisSpacing = 8;
     double screenWidth = MediaQuery.of(context).size.width;
     double crossAxisCount = 1;
