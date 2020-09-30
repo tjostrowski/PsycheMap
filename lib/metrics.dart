@@ -85,43 +85,11 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
           if (snapshot.hasData &&
               snapshot.connectionState == ConnectionState.done) {
             List<MetricValue> metricValues = snapshot.data;
-            List<int> sliderValues =
-                metricValues.map((mv) => mv.value).toList();
             List<String> sliderNames = metricValues
                 .map((mv) =>
                     MyLocalizations.of(context).getMetricName(mv.metric))
                 .toList();
-            return Container(
-                decoration: boxDecoration(),
-                padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-                child: Stack(
-                  children: [
-                    SlidersList(sliderValues, sliderNames, enabled),
-                    Align(
-                        alignment: Alignment.bottomRight,
-                        child: FloatingActionButton.extended(
-                            backgroundColor: Colors.lightBlue[300],
-                            icon: Icon(Icons.save),
-                            label: enabled
-                                ? Text(MyLocalizations.of(context).submit)
-                                : Text(MyLocalizations.of(context).change),
-                            onPressed: () async {
-                              if (enabled) {
-                                List<MetricValue> updatedMetricValues = [];
-                                for (int i = 0; i < metricValues.length; i++) {
-                                  MetricValue mv = metricValues[i];
-                                  updatedMetricValues.add(MetricValue(
-                                      mv.metric, sliderValues[i], _now));
-                                }
-                                await DbProvider.db.saveOrUpdateMetricValues(
-                                    updatedMetricValues, _now);
-                              }
-                              setState(() {
-                                enabled = !enabled;
-                              });
-                            })),
-                  ],
-                ));
+            return SlidersList(metricValues, sliderNames, enabled);
           } else {
             return Center(
               child: CircularProgressIndicator(),
@@ -132,45 +100,84 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
 }
 
 class SlidersList extends StatefulWidget {
-  final List<int> sliderValues;
+  final List<MetricValue> metricValues;
   final List<String> sliderNames;
   final bool enabled;
 
-  SlidersList(this.sliderValues, this.sliderNames, this.enabled, {Key key})
-      : super(key: key);
+  SlidersList(this.metricValues, this.sliderNames, this.enabled, {Key key}) : super(key: key);
 
   State<StatefulWidget> createState() => _SlidersListState();
 }
 
 class _SlidersListState extends State<SlidersList> {
+  List<int> sliderValues;
+  DateTime _now;
+  bool enabled;
+
   @override
-  Widget build(BuildContext context) {
-    List<int> sliderValues = widget.sliderValues;
-    return ListView.builder(
-      itemCount: sliderValues.length,
-      itemBuilder: (context, index) {
-        return Card(
-            child: Column(
+  void initState() {
+    sliderValues = widget.metricValues.map((mv) => mv.value).toList();    
+    enabled = widget.enabled;
+    _now = DateTime.now();
+  }
+
+  @override
+  Widget build(BuildContext context) {    
+    return Container(
+        decoration: boxDecoration(),
+        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+        child: Stack(
           children: [
-            Slider(
-              min: 0.0,
-              max: 5.0,
-              divisions: 5,
-              value: sliderValues[index].toDouble(),
-              label: sliderValues[index].toString(),
-              onChanged: !widget.enabled
-                  ? null
-                  : (double value) {
-                      setState(() {
-                        sliderValues[index] = value.round();
-                      });
-                    },
+            ListView.builder(
+              itemCount: sliderValues.length,
+              itemBuilder: (context, index) {
+                return Card(
+                    child: Column(
+                  children: [
+                    Slider(
+                      min: 0.0,
+                      max: 5.0,
+                      divisions: 5,
+                      value: sliderValues[index].toDouble(),
+                      label: sliderValues[index].toString(),
+                      onChanged: !enabled
+                          ? null
+                          : (double value) {
+                              setState(() {
+                                sliderValues[index] = value.round();
+                              });
+                            },
+                    ),
+                    Text(widget.sliderNames[index]),
+                  ],
+                ));
+              },
             ),
-            Text(widget.sliderNames[index]),
+            Align(
+                alignment: Alignment.bottomRight,
+                child: FloatingActionButton.extended(
+                    backgroundColor: Colors.lightBlue[300],
+                    icon: Icon(Icons.save),
+                    label: enabled
+                        ? Text(MyLocalizations.of(context).submit)
+                        : Text(MyLocalizations.of(context).change),
+                    onPressed: () async {
+                      if (enabled) {
+                        List<MetricValue> updatedMetricValues = [];
+                        for (int i = 0; i < widget.metricValues.length; i++) {
+                          MetricValue mv = widget.metricValues[i];
+                          updatedMetricValues.add(
+                              MetricValue(mv.metric, sliderValues[i], _now));
+                        }
+                        await DbProvider.db.saveOrUpdateMetricValues(
+                            updatedMetricValues, _now);
+                      }
+                      setState(() {
+                        enabled = !enabled;
+                      });
+                    })),
           ],
         ));
-      },
-    );
   }
 }
 
@@ -207,10 +214,12 @@ class _ChartsTabState extends State<ChartsTab> {
               initialData: List(),
               builder:
                   (BuildContext context, AsyncSnapshot<List<Metric>> snapshot) {
-                if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasData &&
+                    snapshot.connectionState == ConnectionState.done) {
                   List<Metric> metrics = snapshot.data;
                   if (widget.metric != null) {
-                    _metricIdx = metrics.indexWhere((m) => widget.metric.id == m.id) + 1;
+                    _metricIdx =
+                        metrics.indexWhere((m) => widget.metric.id == m.id) + 1;
                     if (_metricIdx < 1) {
                       _metricIdx = 1;
                     }
