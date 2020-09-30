@@ -55,8 +55,13 @@ class DbProvider {
               "PRIMARY KEY (metric_id, timestamp)," +
               "FOREIGN KEY (metric_id) REFERENCES metrics_config(id))");
         }
+        if (oldVersion == 2 && newVersion == 3) {
+          db.execute("DROP TABLE IF EXISTS config");
+          db.execute("CREATE TABLE config" +
+              "(send_notifications INTEGER NOT NULL DEFAULT 1)");
+        }
       },
-      version: 2,
+      version: 3,
     );
   }
 
@@ -65,8 +70,6 @@ class DbProvider {
 
     final List<Map<String, dynamic>> configs =
         await database.query('metrics_config');
-
-    stdout.writeln('Configs size: ' + configs.length.toString());
 
     return List.generate(
         configs.length,
@@ -155,6 +158,26 @@ class DbProvider {
 
     await database.update('metrics_config', {'enabled': enable ? 1 : 0},
         where: "id = ?", whereArgs: [metric.id]);
+  }
+
+  Future<bool> exists() async {
+    return databaseExists(join(await getDatabasesPath(), _dbName));
+  }
+
+  Future<void> resetDb() async {
+    final Database database = await this.database;
+
+    await database.update('metrics_config', {'enabled': 0});
+    await database.delete('metrics_values');
+    await database.update('config', {'send_notifications': 1});
+  }
+
+  Future<bool> areMetricsConfigured() async {
+    final Database database = await this.database;
+
+    int enabledMetricsCount = Sqflite.firstIntValue(await database.rawQuery("SELECT COUNT(*) FROM metrics_config WHERE enabled = 1"));
+
+    return Future.value(enabledMetricsCount >= 1);
   }
 
   List<MetricValue> getMetricValuesForLastWeek(Metric metric) {

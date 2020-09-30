@@ -4,13 +4,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:path/path.dart';
 import 'package:psyche_map/initialize_i18n.dart' show initializeI18n;
 import 'package:psyche_map/localizations.dart'
     show MyLocalizations, MyLocalizationsDelegate;
 import 'package:psyche_map/constants.dart' show languages;
 import 'package:psyche_map/metrics.dart';
-import 'package:sqflite/sqflite.dart';
 
 import 'commons.dart';
 import 'db.dart';
@@ -18,13 +16,12 @@ import 'db.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Map<String, Map<String, dynamic>> localizedValues = await initializeI18n();
-  final String dbName = 'psyche_map_db.db';
-  bool dbExists = await databaseExists(join(await getDatabasesPath(), dbName));
-  // if (!dbExists) {
-  runApp(IntroductoryWizard(localizedValues));
-  // } else {
-  //   runApp(MyApp(localizedValues));
-  // }
+  bool wizardNotNecessary = await DbProvider.db.exists() && await DbProvider.db.areMetricsConfigured();
+  if (wizardNotNecessary) {
+    runApp(MyApp(localizedValues));
+  } else {
+    runApp(IntroductoryWizard(localizedValues));
+  }
 }
 
 class IntroductoryWizard extends StatelessWidget {

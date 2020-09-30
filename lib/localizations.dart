@@ -77,6 +77,10 @@ class MyLocalizations {
   String get done {
     return localizedValues[locale.languageCode]['done'];
   }
+
+  String get reset {
+    return localizedValues[locale.languageCode]['reset'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {

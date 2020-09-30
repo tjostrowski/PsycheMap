@@ -57,7 +57,30 @@ class ConfigurationPage extends StatelessWidget {
         appBar: AppBar(
           title: Text(MyLocalizations.of(context).settings),
         ),
-        body: ConfigurationTab());
+        body: DefaultTabController(
+            length: 2,
+            child: Builder(
+                builder: (BuildContext context) => Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Column(children: [
+                      TabPageSelector(),
+                      Expanded(
+                          child: IconTheme(
+                        data: IconThemeData(
+                            size: 128.0, color: Theme.of(context).accentColor),
+                        child: TabBarView(children: [
+                          ConfigurationTab(),
+                          Column(
+                            children: [
+                              RaisedButton(
+                                child: Text(MyLocalizations.of(context).reset),
+                                onPressed: () { DbProvider.db.resetDb(); },
+                              ),
+                            ],
+                          )
+                        ]),
+                      ))
+                    ])))));
   }
 }
 
@@ -104,7 +127,8 @@ class SlidersList extends StatefulWidget {
   final List<String> sliderNames;
   final bool enabled;
 
-  SlidersList(this.metricValues, this.sliderNames, this.enabled, {Key key}) : super(key: key);
+  SlidersList(this.metricValues, this.sliderNames, this.enabled, {Key key})
+      : super(key: key);
 
   State<StatefulWidget> createState() => _SlidersListState();
 }
@@ -116,13 +140,13 @@ class _SlidersListState extends State<SlidersList> {
 
   @override
   void initState() {
-    sliderValues = widget.metricValues.map((mv) => mv.value).toList();    
+    sliderValues = widget.metricValues.map((mv) => mv.value).toList();
     enabled = widget.enabled;
     _now = DateTime.now();
   }
 
   @override
-  Widget build(BuildContext context) {    
+  Widget build(BuildContext context) {
     return Container(
         decoration: boxDecoration(),
         padding: EdgeInsets.fromLTRB(10, 5, 10, 5),

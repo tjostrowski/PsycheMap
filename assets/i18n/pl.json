@@ -23,5 +23,6 @@
     "change": "Zmień",
     "introText1": "Witaj w PsycheAid. Powiedz nam teraz co chcesz mierzyć (np. poziom stresu albo nastrój). Mierniki są w skali 1-5 albo tak/nie.",
     "skip": "Pomiń",
-    "done": "Zrobione"
+    "done": "Zrobione",
+    "reset": "Resetuj"
 }
