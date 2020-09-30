@@ -319,85 +319,78 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-            child: Container(
-                child: !loadingMetrics
-                    ? TypeAheadField(
-                        textFieldConfiguration: TextFieldConfiguration(
-                            autofocus: true,
-                            style: DefaultTextStyle.of(context)
-                                .style
-                                .copyWith(fontStyle: FontStyle.italic),
-                            decoration:
-                                InputDecoration(border: OutlineInputBorder()),
-                            controller: this.typeAheadController),
-                        suggestionsCallback: (pattern) async {                          
-                          return metrics.where((metric) =>
-                              MyLocalizations.of(context)
-                                  .getMetricName(metric)
-                                  .toLowerCase()
-                                  .startsWith(pattern.toLowerCase()));
-                        },
-                        itemBuilder: (BuildContext context, Metric suggestion) {
-                          return ListTile(
-                            title: Text(MyLocalizations.of(context)
-                                .getMetricName(suggestion)),
-                          );
-                        },
-                        onSuggestionSelected: (Metric suggestion) {
-                          this.currentlySelectedMetric = suggestion;
-                          this.typeAheadController.text =
-                              MyLocalizations.of(context)
-                                  .getMetricName(suggestion);
-                        },
-                        hideOnLoading: true,
-                      )
-                    : Center(
-                        child: CircularProgressIndicator(),
-                      )),
-            padding: EdgeInsets.all(16.0)),
-        RaisedButton(
-          child: Text(MyLocalizations.of(context).add),
-          onPressed: () {
-            if (currentlySelectedMetric == null ||
-                selectedMetrics.contains(currentlySelectedMetric)) {
-              return;
-            }
-            selectedMetrics.add(currentlySelectedMetric);
-            DbProvider.db.enableMetric(currentlySelectedMetric, true);
-            setState(() {});
-          },
-        ),
-        OrientationBuilder(builder: (context, orientation) {
-          double heightFactor =
-              (orientation == Orientation.portrait) ? 0.6 : 0.25;
-          return !loadingSelectedMetrics
-              ? Container(
-                  height: min(
-                      MediaQuery.of(context).size.height * heightFactor, 300),
-                  child: ListView.builder(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: selectedMetrics.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        Metric metric = selectedMetrics[index];
-                        return Container(
-                          height: 50,
-                          margin: EdgeInsets.all(2),
-                          color: Colors.blue[400],
-                          child: Center(
-                            child: Text(MyLocalizations.of(context)
-                                .getMetricName(metric)),
-                          ),
-                        );
-                      }),
-                )
-              : Center(
-                  child: CircularProgressIndicator(),
-                );
-        }),
-      ],
+    return ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: selectedMetrics.length + 2,
+        itemBuilder: (BuildContext context, int index) {
+          if (index == 0) {
+            return _typeAhead(loadingMetrics);
+          } else if (index == 1) {
+            return _addButton();
+          } else {
+            Metric metric = selectedMetrics[index - 2];
+            return _metric(metric);
+          }
+        });
+  }
+
+  Widget _typeAhead(bool loadingMetrics) {
+    return !loadingMetrics
+        ? TypeAheadField(
+            textFieldConfiguration: TextFieldConfiguration(
+                autofocus: true,
+                style: DefaultTextStyle.of(context)
+                    .style
+                    .copyWith(fontStyle: FontStyle.italic),
+                decoration: InputDecoration(border: OutlineInputBorder()),
+                controller: this.typeAheadController),
+            suggestionsCallback: (pattern) async {
+              return metrics.where((metric) => MyLocalizations.of(context)
+                  .getMetricName(metric)
+                  .toLowerCase()
+                  .startsWith(pattern.toLowerCase()));
+            },
+            itemBuilder: (BuildContext context, Metric suggestion) {
+              return ListTile(
+                title:
+                    Text(MyLocalizations.of(context).getMetricName(suggestion)),
+              );
+            },
+            onSuggestionSelected: (Metric suggestion) {
+              this.currentlySelectedMetric = suggestion;
+              this.typeAheadController.text =
+                  MyLocalizations.of(context).getMetricName(suggestion);
+            },
+            hideOnLoading: true,
+          )
+        : Center(
+            child: CircularProgressIndicator(),
+          );
+  }
+
+  Widget _addButton() {
+    return RaisedButton(
+      child: Text(MyLocalizations.of(context).add),
+      onPressed: () {
+        if (currentlySelectedMetric == null ||
+            selectedMetrics.contains(currentlySelectedMetric)) {
+          return;
+        }
+        selectedMetrics.add(currentlySelectedMetric);
+        DbProvider.db.enableMetric(currentlySelectedMetric, true);
+        setState(() {});
+      },
+    );
+  }
+
+  Widget _metric(Metric metric) {
+    return Container(
+      height: 50,
+      margin: EdgeInsets.all(2),
+      color: Colors.blue[400],
+      child: Center(
+        child: Text(MyLocalizations.of(context).getMetricName(metric)),
+      ),
     );
   }
 }
