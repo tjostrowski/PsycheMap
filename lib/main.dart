@@ -288,7 +288,7 @@ class _MyHomePageState extends State<MyHomePage> {
       child: GestureDetector(
         onTap: () {
           Navigator.push(context,
-              MaterialPageRoute(builder: (context) => ConfigurationPage()));
+              MaterialPageRoute(builder: (context) => ConfigurationPage())).then((value) => setState(() {}));
         },
         child: Container(
           decoration: boxDecoration(),
