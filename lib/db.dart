@@ -60,8 +60,11 @@ class DbProvider {
           db.execute("CREATE TABLE config" +
               "(send_notifications INTEGER NOT NULL DEFAULT 1)");
         }
+        if (oldVersion == 3 && newVersion == 4) {
+          db.execute("ALTER TABLE metrics_values ADD COLUMN comment TEXT");          
+        }
       },
-      version: 3,
+      version: 4,
     );
   }
 
@@ -97,7 +100,7 @@ class DbProvider {
 
     String formattedDate = _toDateFormatted(dateTime);
     final List<Map<String, dynamic>> values = await database.rawQuery(
-        '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mv.value, mv.timestamp 
+        '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mv.value, mv.timestamp, mv.comment 
           FROM metrics_values mv INNER JOIN metrics_config mc ON mv.metric_id = mc.id          
           WHERE mv.timestamp = "$formattedDate" AND mc.enabled = 1''');
 
@@ -115,7 +118,8 @@ class DbProvider {
                 _toBool(values[i]['range_one_to_five']),
                 isEnabled: _toBool(values[i]['enabled']), id: values[i]['id']),
             values[i]['value'],
-            _fromDateFormatted(values[i]['timestamp'])));
+            _fromDateFormatted(values[i]['timestamp']),
+            comment: values[i]['comment']));
   }
 
   Future<void> saveOrUpdateMetricValues(
@@ -125,7 +129,7 @@ class DbProvider {
 
     for (MetricValue val in values) {
       final int updated = await database.update(
-          'metrics_values', {'value': val.value},
+          'metrics_values', {'value': val.value, 'comment': val.comment},
           where: "timestamp = ? AND metric_id = ?",
           whereArgs: [formattedDate, val.metric.id]);
       if (updated == 0) {
@@ -134,7 +138,8 @@ class DbProvider {
             {
               'metric_id': val.metric.id,
               'value': val.value,
-              'timestamp': formattedDate
+              'timestamp': formattedDate,
+              'comment': val.comment
             },
             conflictAlgorithm: ConflictAlgorithm.replace);
       }
@@ -249,6 +254,7 @@ class MetricValue {
   final Metric metric;
   final int value;
   final DateTime date;
+  final String comment;
 
-  MetricValue(this.metric, this.value, this.date);
+  MetricValue(this.metric, this.value, this.date, {this.comment});
 }

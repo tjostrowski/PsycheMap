@@ -34,7 +34,7 @@ class ChartsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(MyLocalizations.of(context).metricsTitle),
+          title: Text(MyLocalizations.of(context).getMetricName(metric)),
         ),
         body: ChartsTab(metric: metric));
   }
@@ -135,12 +135,17 @@ class SlidersList extends StatefulWidget {
 
 class _SlidersListState extends State<SlidersList> {
   List<int> sliderValues;
+  List<TextEditingController> commentControllers = [];
   DateTime _now;
   bool enabled;
 
   @override
   void initState() {
     sliderValues = widget.metricValues.map((mv) => mv.value).toList();
+    for (int i = 0; i < widget.metricValues.length; i++) {
+      commentControllers.add(TextEditingController());
+      commentControllers[i].text = widget.metricValues[i].comment;
+    }
     enabled = widget.enabled;
     _now = DateTime.now();
   }
@@ -190,14 +195,16 @@ class _SlidersListState extends State<SlidersList> {
                       title: Text(widget.sliderNames[index]),
                       children: [
                         Container(
-                          padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                             child: TextFormField(
-                          // initialValue: "abcd",                                                                                              
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          decoration: InputDecoration(                              
-                              hintText: MyLocalizations.of(context).comment),
-                        ))
+                              enabled: enabled,
+                              controller: commentControllers[index],
+                              keyboardType: TextInputType.multiline,
+                              maxLines: null,
+                              decoration: InputDecoration(
+                                  hintText:
+                                      MyLocalizations.of(context).comment),
+                            ))
                       ],
                     ),
                   ],
@@ -217,8 +224,9 @@ class _SlidersListState extends State<SlidersList> {
                         List<MetricValue> updatedMetricValues = [];
                         for (int i = 0; i < widget.metricValues.length; i++) {
                           MetricValue mv = widget.metricValues[i];
-                          updatedMetricValues.add(
-                              MetricValue(mv.metric, sliderValues[i], _now));
+                          updatedMetricValues.add(MetricValue(
+                              mv.metric, sliderValues[i], _now,
+                              comment: commentControllers[i].text));
                         }
                         await DbProvider.db.saveOrUpdateMetricValues(
                             updatedMetricValues, _now);
@@ -234,7 +242,6 @@ class _SlidersListState extends State<SlidersList> {
 
 class _ChartsTabState extends State<ChartsTab> {
   int _chartType = 1;
-  int _metricIdx = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -260,36 +267,53 @@ class _ChartsTabState extends State<ChartsTab> {
                       _chartType = value;
                     });
                   })),
-          FutureBuilder<List<Metric>>(
-              future: DbProvider.db.getMetrics(),
-              initialData: List(),
-              builder:
-                  (BuildContext context, AsyncSnapshot<List<Metric>> snapshot) {
-                if (snapshot.hasData &&
-                    snapshot.connectionState == ConnectionState.done) {
-                  List<Metric> metrics = snapshot.data;
-                  if (widget.metric != null) {
-                    _metricIdx =
-                        metrics.indexWhere((m) => widget.metric.id == m.id) + 1;
-                    if (_metricIdx < 1) {
-                      _metricIdx = 1;
-                    }
-                  }
-                  return DropdownButton(
-                    value: _metricIdx,
-                    items: _generateMetricItems(metrics),
-                    onChanged: (value) {
-                      setState(() {
-                        _metricIdx = value;
-                      });
-                    },
-                  );
-                } else {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-              })
+          Align(
+            alignment: Alignment.centerRight,
+            child: RaisedButton(
+              color: Colors.green[200],
+              child: Text('Moje komentarze'),
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(20.0)), //this right here
+                        child: Container(
+                          height: 200,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextField(
+                                  decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText:
+                                          'What do you want to remember?'),
+                                ),
+                                SizedBox(
+                                  width: 320.0,
+                                  child: RaisedButton(
+                                    onPressed: () {},
+                                    child: Text(
+                                      "Save",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    color: const Color(0xFF1BC0C5),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    });
+              },
+            ),
+          )
         ]),
         _getChart(),
       ],
