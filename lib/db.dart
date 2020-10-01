@@ -61,7 +61,7 @@ class DbProvider {
               "(send_notifications INTEGER NOT NULL DEFAULT 1)");
         }
         if (oldVersion == 3 && newVersion == 4) {
-          db.execute("ALTER TABLE metrics_values ADD COLUMN comment TEXT");          
+          db.execute("ALTER TABLE metrics_values ADD COLUMN comment TEXT");
         }
       },
       version: 4,
@@ -194,6 +194,29 @@ class DbProvider {
         'SELECT COUNT(*) FROM metrics_values WHERE timestamp ="$formattedDate"'));
 
     return Future.value(numMetricsForToday >= 1);
+  }
+
+  Future<List<MetricValue>> getMetricValuesBetween(
+      Metric metric, DateTime fromDate, DateTime toDate) async {
+    final Database database = await this.database;
+
+    String fromFormattedDate = _toDateFormatted(fromDate);
+    String toFormattedDate = _toDateFormatted(toDate);
+
+    final List<Map<String, dynamic>> values = await database.rawQuery(
+        '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mv.value, mv.timestamp, mv.comment 
+          FROM metrics_values mv INNER JOIN metrics_config mc ON mv.metric_id = mc.id          
+          WHERE mv.timestamp >= "$fromFormattedDate" AND mv.timestamp <= "$toFormattedDate" AND mc.id = ${metric.id} AND mc.enabled = 1''');
+
+    return List.generate(
+        values.length,
+        (i) => MetricValue(
+            Metric(values[i]['metric_alias'],
+                _toBool(values[i]['range_one_to_five']),
+                isEnabled: _toBool(values[i]['enabled']), id: values[i]['id']),
+            values[i]['value'],
+            _fromDateFormatted(values[i]['timestamp']),
+            comment: values[i]['comment']));
   }
 
   List<MetricValue> getMetricValuesForLastWeek(Metric metric) {

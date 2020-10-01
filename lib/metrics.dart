@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:intl/intl.dart';
 import 'package:psyche_map/db.dart';
 import 'package:psyche_map/localizations.dart';
 
@@ -241,7 +244,7 @@ class _SlidersListState extends State<SlidersList> {
 }
 
 class _ChartsTabState extends State<ChartsTab> {
-  int _chartType = 1;
+  int _chartType = 1; // 1=weekly, 2=monthly
 
   @override
   Widget build(BuildContext context) {
@@ -268,56 +271,66 @@ class _ChartsTabState extends State<ChartsTab> {
                     });
                   })),
           Align(
-            alignment: Alignment.centerRight,
-            child: RaisedButton(
-              color: Colors.green[200],
-              child: Text('Moje komentarze'),
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return Dialog(
-                        shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(20.0)), //this right here
-                        child: Container(
-                          height: 200,
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextField(
-                                  decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText:
-                                          'What do you want to remember?'),
-                                ),
-                                SizedBox(
-                                  width: 320.0,
-                                  child: RaisedButton(
-                                    onPressed: () {},
-                                    child: Text(
-                                      "Save",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    color: const Color(0xFF1BC0C5),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    });
-              },
-            ),
-          )
+              alignment: Alignment.centerRight,
+              child: RaisedButton(
+                color: Color(0xFF1BC0C5),
+                child: Text('Moje komentarze'),
+                onPressed: () {
+                  this._showMyComments(context);
+                },
+              )),
         ]),
         _getChart(),
       ],
     );
+  }
+
+  void _showMyComments(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          DateTime now = DateTime.now();
+          return Dialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0)), //this right here
+              child: FutureBuilder<List<MetricValue>>(
+                  future: DbProvider.db.getMetricValuesBetween(
+                      widget.metric,
+                      (_chartType == 1)
+                          ? now.subtract(Duration(days: 7))
+                          : now.subtract(Duration(days: 30)),
+                      now),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<MetricValue>> snapshot) {
+                    if (snapshot.hasData &&
+                        snapshot.connectionState == ConnectionState.done) {
+                      List<MetricValue> metricValues = snapshot.data;
+                      return Container(
+                        height: min(300, MediaQuery.of(context).size.height * 0.6),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: metricValues.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            MetricValue mv = metricValues[index];
+                            return Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(DateFormat('yyyy-MM-dd').format(mv.date)),
+                                  Text(mv.comment),
+                                ],
+                              ),
+                            );
+                          }));
+                    } else {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                  }));
+        });
   }
 
   Widget _getChart() {
