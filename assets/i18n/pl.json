@@ -24,5 +24,6 @@
     "introText1": "Witaj w PsycheAid. Powiedz nam teraz co chcesz mierzyć (np. poziom stresu albo nastrój).",
     "skip": "Pomiń",
     "done": "Zrobione",
-    "reset": "Resetuj"
+    "reset": "Resetuj",
+    "comment": "Komentarz"
 }

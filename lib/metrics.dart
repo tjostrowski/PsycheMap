@@ -186,7 +186,20 @@ class _SlidersListState extends State<SlidersList> {
                                     });
                                   },
                           ),
-                    Text(widget.sliderNames[index]),
+                    ExpansionTile(
+                      title: Text(widget.sliderNames[index]),
+                      children: [
+                        Container(
+                          padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            child: TextFormField(
+                          // initialValue: "abcd",                                                                                              
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          decoration: InputDecoration(                              
+                              hintText: MyLocalizations.of(context).comment),
+                        ))
+                      ],
+                    ),
                   ],
                 ));
               },
