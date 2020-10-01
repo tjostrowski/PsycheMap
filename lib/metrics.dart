@@ -308,36 +308,48 @@ class _ChartsTabState extends State<ChartsTab> {
                       return Container(
                           height: min(
                               300, MediaQuery.of(context).size.height * 0.6),
-                          child: ListView.builder(
-                              padding: const EdgeInsets.all(8),
-                              itemCount: metricValues.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                MetricValue mv = metricValues[index];
-                                return Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding:
-                                            EdgeInsets.fromLTRB(5, 2, 5, 2),
-                                        child: Text(
-                                            DateFormat('yyyy-MM-dd')
-                                                .format(mv.date),
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
-                                      ),
-                                      Container(
-                                          decoration: boxDecoration(),
+                          child: Stack(children: [
+                            ListView.builder(
+                                padding: const EdgeInsets.all(8),
+                                itemCount: metricValues.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  MetricValue mv = metricValues[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
                                           padding:
-                                              EdgeInsets.fromLTRB(7, 2, 7, 2),
-                                          child: Text(mv.comment))
-                                    ],
-                                  ),
-                                );
-                              }));
+                                              EdgeInsets.fromLTRB(5, 2, 5, 2),
+                                          child: Text(
+                                              DateFormat('yyyy-MM-dd')
+                                                  .format(mv.date),
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
+                                        Container(
+                                            decoration: boxDecoration(),
+                                            padding:
+                                                EdgeInsets.fromLTRB(7, 2, 7, 2),
+                                            child: Text(mv.comment))
+                                      ],
+                                    ),
+                                  );
+                                }),
+                            Align(
+                                alignment: Alignment.bottomRight,
+                                child: FloatingActionButton.extended(
+                                    backgroundColor: Colors.lightBlue[300],
+                                    icon: Icon(Icons.save),
+                                    label: Text('OK'),
+                                    onPressed: () async {
+                                      Navigator.of(context).pop();
+                                    }))
+                          ]));
                     } else {
                       return Center(
                         child: CircularProgressIndicator(),
