@@ -93,7 +93,9 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
         ),
         PageViewModel(
           title: MyLocalizations.of(context).metricsTitle,
-          bodyWidget: Container(height: MediaQuery.of(context).size.height * 0.8, child: ConfigurationTab()),
+          bodyWidget: Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: ConfigurationTab()),
           decoration: pageDecoration,
         ),
       ],
@@ -181,20 +183,26 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             )
           ]);
-        } else { // landscape
-          return Row(children: [
-            Flexible(flex: 5, child: _metricsWidget(isPortrait)),
-            Flexible(
-              flex: 2,
-              child: Container(
-                margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                alignment: Alignment.center,
-                child: Column(
-                  children: [_questionnaire(isPortrait), _settings(isPortrait)],
+        } else {
+          // landscape
+          return Row(
+            children: [
+              Flexible(flex: 5, child: _metricsWidget(isPortrait)),
+              Flexible(
+                flex: 2,
+                child: Container(
+                  margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      _questionnaire(isPortrait),
+                      _settings(isPortrait)
+                    ],
+                  ),
                 ),
-              ),
-            )
-          ],);
+              )
+            ],
+          );
         }
       }),
     );
@@ -202,10 +210,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _metricsWidget(bool isPortrait) {
     return Container(
-        margin: isPortrait ? EdgeInsets.fromLTRB(20, 20, 20, 0) : EdgeInsets.fromLTRB(10, 5, 10, 5),
+        margin: isPortrait
+            ? EdgeInsets.fromLTRB(20, 20, 20, 0)
+            : EdgeInsets.fromLTRB(10, 5, 10, 5),
         decoration: boxDecoration(),
         alignment: Alignment.center,
-        padding: isPortrait ? EdgeInsets.fromLTRB(10, 5, 10, 5) : EdgeInsets.fromLTRB(0, 5, 0, 5),
+        padding: isPortrait
+            ? EdgeInsets.fromLTRB(10, 5, 10, 5)
+            : EdgeInsets.fromLTRB(0, 5, 0, 5),
         child: FutureBuilder<List<Metric>>(
             future: DbProvider.db.getEnabledMetrics(),
             initialData: List(),
@@ -221,7 +233,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       childAspectRatio: _aspectRatio(context, isPortrait)),
                   itemBuilder: (context, index) {
                     final metric = metrics[index];
-                    return Card(                       
+                    return Card(
                       child: ListTile(
                         title: Text(
                             MyLocalizations.of(context).getMetricName(metric)),
@@ -255,32 +267,48 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _questionnaire(bool isPortrait) {
-    return Expanded(
-      child: GestureDetector(
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => QuestionnairePage()));
-          },
-          child: Container(
-            decoration: boxDecoration(),
-            margin: isPortrait ? EdgeInsets.fromLTRB(0, 0, 10, 0) : EdgeInsets.fromLTRB(0, 5, 2, 5),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(Icons.question_answer),
-                  Center(
-                      child: Text(
-                    MyLocalizations.of(context).questionnaire,
-                    textScaleFactor: 1.6,
+    return FutureBuilder<bool>(
+        future: DbProvider.db.isQuestionnaireFilledForToday(),
+        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+          if (snapshot.hasData &&
+              snapshot.connectionState == ConnectionState.done) {
+            bool filled = snapshot.data;    
+            return Expanded(
+              child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => QuestionnairePage())).then((value) => setState(() {}));
+                  },
+                  child: Container(
+                    decoration: boxDecoration(),
+                    margin: isPortrait
+                        ? EdgeInsets.fromLTRB(0, 0, 10, 0)
+                        : EdgeInsets.fromLTRB(0, 5, 2, 5),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          filled ? Icon(Icons.check, color: Colors.green) : Icon(Icons.question_answer),
+                          Center(
+                              child: Text(
+                            MyLocalizations.of(context).questionnaire,
+                            textScaleFactor: 1.6,
+                          )),
+                          Center(
+                              child: Text(
+                            DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                          )),
+                        ]),
                   )),
-                  Center(
-                      child: Text(
-                    DateFormat('yyyy-MM-dd').format(DateTime.now()),
-                  )),
-                ]),
-          )),
-    );
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        });
   }
 
   Widget _settings(bool isPortrait) {
@@ -288,11 +316,14 @@ class _MyHomePageState extends State<MyHomePage> {
       child: GestureDetector(
         onTap: () {
           Navigator.push(context,
-              MaterialPageRoute(builder: (context) => ConfigurationPage())).then((value) => setState(() {}));
+                  MaterialPageRoute(builder: (context) => ConfigurationPage()))
+              .then((value) => setState(() {}));
         },
         child: Container(
           decoration: boxDecoration(),
-          margin: isPortrait ? EdgeInsets.fromLTRB(0, 0, 0, 0) : EdgeInsets.fromLTRB(0, 0, 2, 5),
+          margin: isPortrait
+              ? EdgeInsets.fromLTRB(0, 0, 0, 0)
+              : EdgeInsets.fromLTRB(0, 0, 2, 5),
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,

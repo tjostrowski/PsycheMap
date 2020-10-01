@@ -155,23 +155,37 @@ class _SlidersListState extends State<SlidersList> {
             ListView.builder(
               itemCount: sliderValues.length,
               itemBuilder: (context, index) {
+                MetricValue mv = widget.metricValues[index];
+                Metric m = mv.metric;
+
                 return Card(
                     child: Column(
                   children: [
-                    Slider(
-                      min: 0.0,
-                      max: 5.0,
-                      divisions: 5,
-                      value: sliderValues[index].toDouble(),
-                      label: sliderValues[index].toString(),
-                      onChanged: !enabled
-                          ? null
-                          : (double value) {
-                              setState(() {
-                                sliderValues[index] = value.round();
-                              });
-                            },
-                    ),
+                    m.isRangeOneToFive
+                        ? Slider(
+                            min: 0.0,
+                            max: 5.0,
+                            divisions: 5,
+                            value: sliderValues[index].toDouble(),
+                            label: sliderValues[index].toString(),
+                            onChanged: !enabled
+                                ? null
+                                : (double value) {
+                                    setState(() {
+                                      sliderValues[index] = value.round();
+                                    });
+                                  },
+                          )
+                        : Switch(
+                            value: sliderValues[index] == 1,
+                            onChanged: !enabled
+                                ? null
+                                : (bool value) {
+                                    setState(() {
+                                      sliderValues[index] = value ? 1 : 0;
+                                    });
+                                  },
+                          ),
                     Text(widget.sliderNames[index]),
                   ],
                 ));
@@ -375,9 +389,9 @@ class _ConfigurationTabState extends State<ConfigurationTab> {
           return;
         }
 
-
         selectedMetrics.add(currentlySelectedMetric);
         DbProvider.db.enableMetric(currentlySelectedMetric, true);
+        this.typeAheadController.text = '';
         setState(() {});
       },
     );

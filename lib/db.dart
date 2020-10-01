@@ -175,9 +175,20 @@ class DbProvider {
   Future<bool> areMetricsConfigured() async {
     final Database database = await this.database;
 
-    int enabledMetricsCount = Sqflite.firstIntValue(await database.rawQuery("SELECT COUNT(*) FROM metrics_config WHERE enabled = 1"));
+    int enabledMetricsCount = Sqflite.firstIntValue(await database
+        .rawQuery("SELECT COUNT(*) FROM metrics_config WHERE enabled = 1"));
 
     return Future.value(enabledMetricsCount >= 1);
+  }
+
+  Future<bool> isQuestionnaireFilledForToday() async {
+    final Database database = await this.database;
+
+    String formattedDate = _toDateFormatted(DateTime.now());
+    int numMetricsForToday = Sqflite.firstIntValue(await database.rawQuery(
+        'SELECT COUNT(*) FROM metrics_values WHERE timestamp ="$formattedDate"'));
+
+    return Future.value(numMetricsForToday >= 1);
   }
 
   List<MetricValue> getMetricValuesForLastWeek(Metric metric) {
@@ -227,11 +238,9 @@ class Metric {
 
   @override
   bool operator ==(Object other) =>
-    identical(this, other) ||
-    other is Metric &&
-    runtimeType == other.runtimeType &&
-    id == other.id;
-  
+      identical(this, other) ||
+      other is Metric && runtimeType == other.runtimeType && id == other.id;
+
   @override
   int get hashCode => id.hashCode;
 }
