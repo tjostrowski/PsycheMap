@@ -94,8 +94,7 @@ class DbProvider {
             isEnabled: _toBool(configs[i]['enabled']), id: configs[i]['id']));
   }
 
-  Future<List<MetricValue>> getEnabledMetricValues(
-      DateTime dateTime, int defaultValue) async {
+  Future<List<MetricValue>> getEnabledMetricValues(DateTime dateTime) async {
     final Database database = await this.database;
 
     String formattedDate = _toDateFormatted(dateTime);
@@ -107,7 +106,7 @@ class DbProvider {
     if (values.length == 0) {
       List<Metric> metrics = await getEnabledMetrics();
       return Future<List<MetricValue>>.value(metrics
-          .map((metric) => MetricValue(metric, defaultValue, dateTime))
+          .map((metric) => MetricValue(metric, metric.isRangeOneToFive ? 3 : 0, dateTime))
           .toList());
     }
 

@@ -105,7 +105,7 @@ class _QuestionnaireTabState extends State<QuestionnaireTab> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<MetricValue>>(
-        future: DbProvider.db.getEnabledMetricValues(_now, 3),
+        future: DbProvider.db.getEnabledMetricValues(_now),
         builder:
             (BuildContext context, AsyncSnapshot<List<MetricValue>> snapshot) {
           if (snapshot.hasData &&
