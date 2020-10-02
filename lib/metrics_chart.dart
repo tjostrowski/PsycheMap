@@ -3,18 +3,16 @@ import 'package:flutter/material.dart';
 
 import 'db.dart';
 
-Widget weeklyChart(BuildContext context, String metricName) {
+Widget weeklyChart(BuildContext context, List<MetricValue> metricValues, String metricName) {
   final toDate = DateTime.now();
   final fromDate = toDate.subtract(Duration(days: 7));
-  final List<MetricValue> metricValues = DbProvider.db.getMetricValuesForLastWeek(null);
 
   return _plotDailyChart(metricValues, fromDate, toDate, context, metricName);
 }
 
-Widget monthlyChart(BuildContext context, String metricName) {
+Widget monthlyChart(BuildContext context, List<MetricValue> metricValues, String metricName) {
   final toDate = DateTime.now();
   final fromDate = toDate.subtract(Duration(days: 30));
-  final List<MetricValue> metricValues = DbProvider.db.getMetricValuesForLastMonth(null);
   
   return _plotDailyChart(metricValues, fromDate, toDate, context, metricName);
 }

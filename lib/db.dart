@@ -206,7 +206,8 @@ class DbProvider {
     final List<Map<String, dynamic>> values = await database.rawQuery(
         '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mv.value, mv.timestamp, mv.comment 
           FROM metrics_values mv INNER JOIN metrics_config mc ON mv.metric_id = mc.id          
-          WHERE mv.timestamp >= "$fromFormattedDate" AND mv.timestamp <= "$toFormattedDate" AND mc.id = ${metric.id} AND mc.enabled = 1''');
+          WHERE mv.timestamp >= "$fromFormattedDate" AND mv.timestamp <= "$toFormattedDate" AND mc.id = ${metric.id} AND mc.enabled = 1
+          ORDER BY mv.timestamp''');
 
     return List.generate(
         values.length,

@@ -246,6 +246,39 @@ class _SlidersListState extends State<SlidersList> {
 
 class _ChartsTabState extends State<ChartsTab> {
   int _chartType = 1; // 1=weekly, 2=monthly
+  List<MetricValue> metricValues = [];
+  bool loadingMetricValues = true;
+
+  bool _isWeekly() {
+    return _chartType == 1;
+  }
+
+  bool _isMonthly() {
+    return _chartType == 2;
+  }
+
+  @override
+  void initState() {
+    _loadMetricValues();
+  }
+
+  void _loadMetricValues() {
+    DateTime now = DateTime.now();
+    loadingMetricValues = true;
+    DbProvider.db
+        .getMetricValuesBetween(
+            widget.metric,
+            _isWeekly()
+                ? now.subtract(Duration(days: 7))
+                : now.subtract(Duration(days: 30)),
+            now)
+        .then((metricValues) {
+      setState(() {
+        this.metricValues = metricValues;
+        loadingMetricValues = false;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -269,6 +302,7 @@ class _ChartsTabState extends State<ChartsTab> {
                   onChanged: (value) {
                     setState(() {
                       _chartType = value;
+                      this._loadMetricValues();
                     });
                   })),
           Align(
@@ -290,80 +324,71 @@ class _ChartsTabState extends State<ChartsTab> {
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          DateTime now = DateTime.now();
           return Dialog(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20.0)), //this right here
-              child: FutureBuilder<List<MetricValue>>(
-                  future: DbProvider.db.getMetricValuesBetween(
-                      widget.metric,
-                      (_chartType == 1)
-                          ? now.subtract(Duration(days: 7))
-                          : now.subtract(Duration(days: 30)),
-                      now),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<List<MetricValue>> snapshot) {
-                    if (snapshot.hasData &&
-                        snapshot.connectionState == ConnectionState.done) {
-                      List<MetricValue> metricValues = _filterMetricValuesWithNonEmptyComment(snapshot.data);
-                      return Container(
-                          height: min(
-                              300, MediaQuery.of(context).size.height * 0.6),
-                          child: Stack(children: [
-                            ListView.builder(
-                                padding: const EdgeInsets.all(8),
-                                itemCount: metricValues.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  MetricValue mv = metricValues[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          padding:
-                                              EdgeInsets.fromLTRB(5, 2, 5, 2),
-                                          child: Text(
-                                              DateFormat('yyyy-MM-dd')
-                                                  .format(mv.date),
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        Container(
-                                            decoration: boxDecoration(),
-                                            padding:
-                                                EdgeInsets.fromLTRB(7, 2, 7, 2),
-                                            child: Text(mv.comment))
-                                      ],
-                                    ),
-                                  );
-                                }),
-                            Align(
-                                alignment: Alignment.bottomRight,
-                                child: FloatingActionButton.extended(
-                                    backgroundColor: Colors.lightBlue[300],
-                                    icon: Icon(Icons.save),
-                                    label: Text('OK'),
-                                    onPressed: () async {
-                                      Navigator.of(context).pop();
-                                    }))
-                          ]));
-                    } else {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                  }));
+              child: Container(
+                  height: min(300, MediaQuery.of(context).size.height * 0.6),
+                  child: Stack(children: [
+                    _commentsList(),
+                    Align(
+                        alignment: Alignment.bottomRight,
+                        child: FloatingActionButton.extended(
+                            backgroundColor: Colors.lightBlue[300],
+                            icon: Icon(Icons.save),
+                            label: Text('OK'),
+                            onPressed: () async {
+                              Navigator.of(context).pop();
+                            }))
+                  ])));
         });
   }
 
+  Widget _commentsList() {
+    if (!loadingMetricValues) {
+      List<MetricValue> filteredMetricValues =
+          _filterMetricValuesWithNonEmptyComment(metricValues);
+      return ListView.builder(
+          padding: const EdgeInsets.all(8),
+          itemCount: filteredMetricValues.length,
+          itemBuilder: (BuildContext context, int index) {
+            MetricValue mv = filteredMetricValues[index];
+            return Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
+                    child: Text(DateFormat('yyyy-MM-dd').format(mv.date),
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                  Container(
+                      decoration: boxDecoration(),
+                      padding: EdgeInsets.fromLTRB(7, 2, 7, 2),
+                      child: Text(mv.comment))
+                ],
+              ),
+            );
+          });
+    } else {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+  }
+
   Widget _getChart() {
-    return (this._chartType == 1)
-        ? weeklyChart(context, "Test")
-        : monthlyChart(context, "Test");
+    if (!loadingMetricValues) {
+      return _isWeekly()
+          ? weeklyChart(context, metricValues, widget.metric.metricAlias)
+          : monthlyChart(context, metricValues, widget.metric.metricAlias);
+    } else {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }      
   }
 
   List<DropdownMenuItem> _generateMetricItems(List<Metric> metrics) {
@@ -379,8 +404,11 @@ class _ChartsTabState extends State<ChartsTab> {
         .toList();
   }
 
-  List<MetricValue> _filterMetricValuesWithNonEmptyComment(List<MetricValue> metricValues) {
-    return metricValues.where((mv) => mv.comment != null && mv.comment.trim().isNotEmpty).toList();
+  List<MetricValue> _filterMetricValuesWithNonEmptyComment(
+      List<MetricValue> metricValues) {
+    return metricValues
+        .where((mv) => mv.comment != null && mv.comment.trim().isNotEmpty)
+        .toList();
   }
 }
 
