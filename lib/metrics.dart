@@ -227,9 +227,10 @@ class _SlidersListState extends State<SlidersList> {
                         List<MetricValue> updatedMetricValues = [];
                         for (int i = 0; i < widget.metricValues.length; i++) {
                           MetricValue mv = widget.metricValues[i];
+                          String comment = commentControllers[i].text.trim();
                           updatedMetricValues.add(MetricValue(
                               mv.metric, sliderValues[i], _now,
-                              comment: commentControllers[i].text));
+                              comment: comment != '' ? comment : null));
                         }
                         await DbProvider.db.saveOrUpdateMetricValues(
                             updatedMetricValues, _now);
@@ -304,7 +305,7 @@ class _ChartsTabState extends State<ChartsTab> {
                       AsyncSnapshot<List<MetricValue>> snapshot) {
                     if (snapshot.hasData &&
                         snapshot.connectionState == ConnectionState.done) {
-                      List<MetricValue> metricValues = snapshot.data;
+                      List<MetricValue> metricValues = _filterMetricValuesWithNonEmptyComment(snapshot.data);
                       return Container(
                           height: min(
                               300, MediaQuery.of(context).size.height * 0.6),
@@ -376,6 +377,10 @@ class _ChartsTabState extends State<ChartsTab> {
                 value: index + 1)))
         .values
         .toList();
+  }
+
+  List<MetricValue> _filterMetricValuesWithNonEmptyComment(List<MetricValue> metricValues) {
+    return metricValues.where((mv) => mv.comment != null && mv.comment.trim().isNotEmpty).toList();
   }
 }
 
