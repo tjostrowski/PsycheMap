@@ -90,7 +90,7 @@ class ConfigurationPage extends StatelessWidget {
 class ConfigurationTab extends StatefulWidget {
   ConfigurationTab({Key key}) : super(key: key);
 
-  State<StatefulWidget> createState() => _ConfigurationTabState();
+  State<StatefulWidget> createState() => ConfigurationTabState();
 }
 
 class _QuestionnaireTabState extends State<QuestionnaireTab> {
@@ -412,7 +412,7 @@ class _ChartsTabState extends State<ChartsTab> {
   }
 }
 
-class _ConfigurationTabState extends State<ConfigurationTab> {
+class ConfigurationTabState extends State<ConfigurationTab> {
   final TextEditingController typeAheadController = TextEditingController();
 
   Metric currentlySelectedMetric;

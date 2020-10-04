@@ -60,11 +60,14 @@ class IntroductoryPage extends StatefulWidget {
 
 class _IntroductoryPageState extends State<IntroductoryPage> {
   final introKey = GlobalKey<IntroductionScreenState>();
+  final configTabState = GlobalKey<ConfigurationTabState>();
 
   void _onIntroEnd(context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => MyHomePage()),
-    );
+    if (configTabState.currentState.selectedMetrics.isNotEmpty) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => MyHomePage()),
+      );
+    }
   }
 
   @override
@@ -95,7 +98,7 @@ class _IntroductoryPageState extends State<IntroductoryPage> {
           title: MyLocalizations.of(context).metricsTitle,
           bodyWidget: Container(
               height: MediaQuery.of(context).size.height * 0.8,
-              child: ConfigurationTab()),
+              child: ConfigurationTab(key: configTabState)),
           decoration: pageDecoration,
         ),
       ],
@@ -156,6 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text("PsycheAid"),
         elevation: 0.0,
         centerTitle: true,
@@ -272,14 +276,15 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
           if (snapshot.hasData &&
               snapshot.connectionState == ConnectionState.done) {
-            bool filled = snapshot.data;    
+            bool filled = snapshot.data;
             return Expanded(
               child: GestureDetector(
                   onTap: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => QuestionnairePage())).then((value) => setState(() {}));
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => QuestionnairePage()))
+                        .then((value) => setState(() {}));
                   },
                   child: Container(
                     decoration: boxDecoration(),
@@ -290,7 +295,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          filled ? Icon(Icons.check, color: Colors.green) : Icon(Icons.question_answer),
+                          filled
+                              ? Icon(Icons.check, color: Colors.green)
+                              : Icon(Icons.question_answer),
                           Center(
                               child: Text(
                             MyLocalizations.of(context).questionnaire,
