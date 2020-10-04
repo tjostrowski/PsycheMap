@@ -382,8 +382,8 @@ class _ChartsTabState extends State<ChartsTab> {
   Widget _getChart() {
     if (!loadingMetricValues) {
       return _isWeekly()
-          ? weeklyChart(context, metricValues, widget.metric.metricAlias)
-          : monthlyChart(context, metricValues, widget.metric.metricAlias);
+          ? weeklyChart(context, metricValues, MyLocalizations.of(context).getMetricName(widget.metric))
+          : monthlyChart(context, metricValues, MyLocalizations.of(context).getMetricName(widget.metric));
     } else {
       return Center(
         child: CircularProgressIndicator(),

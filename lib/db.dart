@@ -63,8 +63,19 @@ class DbProvider {
         if (oldVersion == 3 && newVersion == 4) {
           db.execute("ALTER TABLE metrics_values ADD COLUMN comment TEXT");
         }
+        if (oldVersion == 4 && newVersion == 5) {
+          db.execute("ALTER TABLE metrics_config ADD COLUMN increases_danger INTEGER NOT NULL DEFAULT 0");
+          Batch batch = db.batch();    
+          List<Metric> configs = Metric.config;
+          configs.forEach((cfg) {
+            batch.update('metrics_config', {
+              'increases_danger': cfg.isIncreasesDanger ? 1 : 0,
+            }, where: "metric_alias = ?", whereArgs: [cfg.metricAlias]);
+          });
+          batch.commit();        
+        }
       },
-      version: 4,
+      version: 5,
     );
   }
 
@@ -78,6 +89,7 @@ class DbProvider {
         configs.length,
         (i) => Metric(configs[i]['metric_alias'],
             _toBool(configs[i]['range_one_to_five']),
+            _toBool(configs[i]['increases_danger']),
             isEnabled: _toBool(configs[i]['enabled']), id: configs[i]['id']));
   }
 
@@ -91,6 +103,7 @@ class DbProvider {
         configs.length,
         (i) => Metric(configs[i]['metric_alias'],
             _toBool(configs[i]['range_one_to_five']),
+            _toBool(configs[i]['increases_danger']),
             isEnabled: _toBool(configs[i]['enabled']), id: configs[i]['id']));
   }
 
@@ -99,7 +112,7 @@ class DbProvider {
 
     String formattedDate = _toDateFormatted(dateTime);
     final List<Map<String, dynamic>> values = await database.rawQuery(
-        '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mv.value, mv.timestamp, mv.comment 
+        '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mc.increases_danger, mv.value, mv.timestamp, mv.comment 
           FROM metrics_values mv INNER JOIN metrics_config mc ON mv.metric_id = mc.id          
           WHERE mv.timestamp = "$formattedDate" AND mc.enabled = 1''');
 
@@ -115,6 +128,7 @@ class DbProvider {
         (i) => MetricValue(
             Metric(values[i]['metric_alias'],
                 _toBool(values[i]['range_one_to_five']),
+                _toBool(values[i]['increases_danger']),
                 isEnabled: _toBool(values[i]['enabled']), id: values[i]['id']),
             values[i]['value'],
             _fromDateFormatted(values[i]['timestamp']),
@@ -203,7 +217,7 @@ class DbProvider {
     String toFormattedDate = _toDateFormatted(toDate);
 
     final List<Map<String, dynamic>> values = await database.rawQuery(
-        '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mv.value, mv.timestamp, mv.comment 
+        '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mc.increases_danger, mv.value, mv.timestamp, mv.comment 
           FROM metrics_values mv INNER JOIN metrics_config mc ON mv.metric_id = mc.id          
           WHERE mv.timestamp >= "$fromFormattedDate" AND mv.timestamp <= "$toFormattedDate" AND mc.id = ${metric.id} AND mc.enabled = 1
           ORDER BY mv.timestamp''');
@@ -213,6 +227,7 @@ class DbProvider {
         (i) => MetricValue(
             Metric(values[i]['metric_alias'],
                 _toBool(values[i]['range_one_to_five']),
+                _toBool(values[i]['increases_danger']),
                 isEnabled: _toBool(values[i]['enabled']), id: values[i]['id']),
             values[i]['value'],
             _fromDateFormatted(values[i]['timestamp']),
@@ -246,21 +261,22 @@ class Metric {
   final String metricAlias;
   final bool isRangeOneToFive;
   final bool isEnabled;
+  final bool isIncreasesDanger;
 
-  Metric(this.metricAlias, this.isRangeOneToFive,
+  Metric(this.metricAlias, this.isRangeOneToFive, this.isIncreasesDanger,
       {this.isEnabled = false, this.id});
 
   static List<Metric> get config {
     return [
-      Metric("DREAM", true),
-      Metric("MOOD", true),
-      Metric("AGGRESSION_LEVEL", true),
-      Metric("ACTIVITY", true),
-      Metric("SOCIALIZATION", true),
-      Metric("STRESS_LEVEL", true),
-      Metric("SUICIDE_THOUGHTS", false),
-      Metric("DELUSIONS", false),
-      Metric("OTHERS", true)
+      Metric("DREAM", true, false),
+      Metric("MOOD", true, false),
+      Metric("AGGRESSION_LEVEL", true, true),
+      Metric("ACTIVITY", true, false),
+      Metric("SOCIALIZATION", true, false),
+      Metric("STRESS_LEVEL", true, true),
+      Metric("SUICIDE_THOUGHTS", false, true),
+      Metric("DELUSIONS", false, true),
+      Metric("OTHERS", true, false)
     ];
   }
 
@@ -280,4 +296,11 @@ class MetricValue {
   final String comment;
 
   MetricValue(this.metric, this.value, this.date, {this.comment});
+}
+
+class MetricInidicatorValue {
+  final Metric metric;
+  final int value; // 0-10, or 20-undefined
+
+  MetricInidicatorValue(this.metric, this.value);
 }

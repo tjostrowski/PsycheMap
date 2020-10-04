@@ -1,3 +1,4 @@
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -9,6 +10,7 @@ import 'package:psyche_map/localizations.dart'
     show MyLocalizations, MyLocalizationsDelegate;
 import 'package:psyche_map/constants.dart' show languages;
 import 'package:psyche_map/metrics.dart';
+import 'package:psyche_map/metrics_indicators.dart';
 
 import 'commons.dart';
 import 'db.dart';
@@ -155,6 +157,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final _indicatorsCache =
+      AsyncCache<List<MetricInidicatorValue>>(Duration(hours: 1));
+
+  Future<List<MetricInidicatorValue>> get indicators =>
+      _indicatorsCache.fetch(() {
+        return MetricIndicatorsCompute().computeIndicatorValues();
+      });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -222,32 +232,30 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: isPortrait
             ? EdgeInsets.fromLTRB(10, 5, 10, 5)
             : EdgeInsets.fromLTRB(0, 5, 0, 5),
-        child: FutureBuilder<List<Metric>>(
-            future: DbProvider.db.getEnabledMetrics(),
+        child: FutureBuilder<List<MetricInidicatorValue>>(
+            future: this.indicators,
             initialData: List(),
             builder:
-                (BuildContext context, AsyncSnapshot<List<Metric>> snapshot) {
-              if (snapshot.hasData) {
-                List<Metric> metrics = snapshot.data;
+                (BuildContext context, AsyncSnapshot<List<MetricInidicatorValue>> snapshot) {
+              if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
+                List<MetricInidicatorValue> metricIndicators = snapshot.data;
                 return GridView.builder(
                   shrinkWrap: false,
-                  itemCount: metrics.length,
+                  itemCount: metricIndicators.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 1,
                       childAspectRatio: _aspectRatio(context, isPortrait)),
                   itemBuilder: (context, index) {
-                    final metric = metrics[index];
+                    final metricIndicatorValue = metricIndicators[index];
                     return Card(
                       child: ListTile(
                         title: Text(
-                            MyLocalizations.of(context).getMetricName(metric)),
+                            MyLocalizations.of(context).getMetricName(metricIndicatorValue.metric)),
                         trailing: Container(
                           width: 15,
                           height: 15,
                           decoration: BoxDecoration(
-                              color: (index % 3 == 0)
-                                  ? Colors.red
-                                  : Theme.of(context).primaryColor,
+                              color: _getColor(metricIndicatorValue),
                               borderRadius:
                                   BorderRadius.all(Radius.circular(50))),
                         ),
@@ -255,7 +263,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => ChartsPage(metric)));
+                                  builder: (context) => ChartsPage(metricIndicatorValue.metric)));
                         },
                       ),
                       elevation: 0.5,
@@ -268,6 +276,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               }
             }));
+  }
+
+  Color _getColor(MetricInidicatorValue metricInidicatorValue) {
+    int value = metricInidicatorValue.value;
+    if (metricInidicatorValue.value == 20) {
+      return Colors.grey;
+    }
+    if (value < 5) {
+      return Colors.red;
+    } else if (value == 5) {
+      return Colors.yellow;
+    }
+    return Colors.green;
   }
 
   Widget _questionnaire(bool isPortrait) {
