@@ -283,12 +283,12 @@ class _MyHomePageState extends State<MyHomePage> {
     if (metricInidicatorValue.value == 20) {
       return Colors.grey;
     }
-    if (value < 5) {
+    if (value < 4) {
       return Colors.red;
-    } else if (value == 5) {
-      return Colors.yellow;
+    } else if (value > 6) {
+      return Colors.green;
     }
-    return Colors.green;
+    return Colors.yellow;
   }
 
   Widget _questionnaire(bool isPortrait) {
