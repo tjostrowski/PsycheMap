@@ -382,13 +382,15 @@ class _ChartsTabState extends State<ChartsTab> {
   Widget _getChart() {
     if (!loadingMetricValues) {
       return _isWeekly()
-          ? weeklyChart(context, metricValues, MyLocalizations.of(context).getMetricName(widget.metric))
-          : monthlyChart(context, metricValues, MyLocalizations.of(context).getMetricName(widget.metric));
+          ? weeklyChart(context, metricValues,
+              MyLocalizations.of(context).getMetricName(widget.metric))
+          : monthlyChart(context, metricValues,
+              MyLocalizations.of(context).getMetricName(widget.metric));
     } else {
       return Center(
         child: CircularProgressIndicator(),
       );
-    }      
+    }
   }
 
   List<DropdownMenuItem> _generateMetricItems(List<Metric> metrics) {
@@ -450,7 +452,7 @@ class ConfigurationTabState extends State<ConfigurationTab> {
             return _addButton();
           } else {
             Metric metric = selectedMetrics[index - 2];
-            return _metric(metric);
+            return _metric(metric, index - 2);
           }
         });
   }
@@ -506,14 +508,22 @@ class ConfigurationTabState extends State<ConfigurationTab> {
     );
   }
 
-  Widget _metric(Metric metric) {
-    return Container(
-      height: 50,
-      margin: EdgeInsets.all(2),
-      color: Colors.blue[400],
-      child: Center(
-        child: Text(MyLocalizations.of(context).getMetricName(metric)),
-      ),
-    );
+  Widget _metric(Metric metric, int itemIndex) {
+    return Dismissible(
+        key: Key(metric.metricAlias),
+        onDismissed: (direction) {
+          DbProvider.db.enableMetric(metric, false);
+          setState(() {
+            selectedMetrics.removeAt(itemIndex);
+          });
+        },
+        child: Container(
+          height: 50,
+          margin: EdgeInsets.all(2),
+          color: Colors.blue[400],
+          child: Center(
+            child: Text(MyLocalizations.of(context).getMetricName(metric)),
+          ),
+        ));
   }
 }

@@ -345,7 +345,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onTap: () {
           Navigator.push(context,
                   MaterialPageRoute(builder: (context) => ConfigurationPage()))
-              .then((value) => setState(() {}));
+              .then((value) => setState(() { _indicatorsCache.invalidate(); }));
         },
         child: Container(
           decoration: boxDecoration(),
