@@ -64,15 +64,20 @@ class DbProvider {
           db.execute("ALTER TABLE metrics_values ADD COLUMN comment TEXT");
         }
         if (oldVersion == 4 && newVersion == 5) {
-          db.execute("ALTER TABLE metrics_config ADD COLUMN increases_danger INTEGER NOT NULL DEFAULT 0");
-          Batch batch = db.batch();    
+          db.execute(
+              "ALTER TABLE metrics_config ADD COLUMN increases_danger INTEGER NOT NULL DEFAULT 0");
+          Batch batch = db.batch();
           List<Metric> configs = Metric.config;
           configs.forEach((cfg) {
-            batch.update('metrics_config', {
-              'increases_danger': cfg.isIncreasesDanger ? 1 : 0,
-            }, where: "metric_alias = ?", whereArgs: [cfg.metricAlias]);
+            batch.update(
+                'metrics_config',
+                {
+                  'increases_danger': cfg.isIncreasesDanger ? 1 : 0,
+                },
+                where: "metric_alias = ?",
+                whereArgs: [cfg.metricAlias]);
           });
-          batch.commit();        
+          batch.commit();
         }
       },
       version: 5,
@@ -87,10 +92,12 @@ class DbProvider {
 
     return List.generate(
         configs.length,
-        (i) => Metric(configs[i]['metric_alias'],
+        (i) => Metric(
+            configs[i]['metric_alias'],
             _toBool(configs[i]['range_one_to_five']),
             _toBool(configs[i]['increases_danger']),
-            isEnabled: _toBool(configs[i]['enabled']), id: configs[i]['id']));
+            isEnabled: _toBool(configs[i]['enabled']),
+            id: configs[i]['id']));
   }
 
   Future<List<Metric>> getEnabledMetrics() async {
@@ -101,10 +108,12 @@ class DbProvider {
 
     return List.generate(
         configs.length,
-        (i) => Metric(configs[i]['metric_alias'],
+        (i) => Metric(
+            configs[i]['metric_alias'],
             _toBool(configs[i]['range_one_to_five']),
             _toBool(configs[i]['increases_danger']),
-            isEnabled: _toBool(configs[i]['enabled']), id: configs[i]['id']));
+            isEnabled: _toBool(configs[i]['enabled']),
+            id: configs[i]['id']));
   }
 
   Future<List<MetricValue>> getEnabledMetricValues(DateTime dateTime) async {
@@ -113,26 +122,32 @@ class DbProvider {
     String formattedDate = _toDateFormatted(dateTime);
     final List<Map<String, dynamic>> values = await database.rawQuery(
         '''SELECT mc.metric_alias, mc.id, mc.range_one_to_five, mc.increases_danger, mv.value, mv.timestamp, mv.comment 
-          FROM metrics_values mv INNER JOIN metrics_config mc ON mv.metric_id = mc.id          
+          FROM metrics_config mc LEFT JOIN metrics_values mv ON mv.metric_id = mc.id          
           WHERE mv.timestamp = "$formattedDate" AND mc.enabled = 1''');
 
     if (values.length == 0) {
       List<Metric> metrics = await getEnabledMetrics();
       return Future<List<MetricValue>>.value(metrics
-          .map((metric) => MetricValue(metric, metric.isRangeOneToFive ? 3 : 0, dateTime))
+          .map((metric) =>
+              MetricValue(metric, _getDefaultValue(metric), dateTime))
           .toList());
     }
 
-    return List.generate(
-        values.length,
-        (i) => MetricValue(
-            Metric(values[i]['metric_alias'],
-                _toBool(values[i]['range_one_to_five']),
-                _toBool(values[i]['increases_danger']),
-                isEnabled: _toBool(values[i]['enabled']), id: values[i]['id']),
-            values[i]['value'],
-            _fromDateFormatted(values[i]['timestamp']),
-            comment: values[i]['comment']));
+    return List.generate(values.length, (i) {
+      Metric metric = Metric(
+          values[i]['metric_alias'],
+          _toBool(values[i]['range_one_to_five']),
+          _toBool(values[i]['increases_danger']),
+          isEnabled: _toBool(values[i]['enabled']),
+          id: values[i]['id']);
+      return MetricValue(
+          metric, values[i]['value'] ?? _getDefaultValue(metric), dateTime,
+          comment: values[i]['comment']);
+    });
+  }
+
+  int _getDefaultValue(Metric metric) {
+    return metric.isRangeOneToFive ? 3 : 0;
   }
 
   Future<void> saveOrUpdateMetricValues(
@@ -225,10 +240,12 @@ class DbProvider {
     return List.generate(
         values.length,
         (i) => MetricValue(
-            Metric(values[i]['metric_alias'],
+            Metric(
+                values[i]['metric_alias'],
                 _toBool(values[i]['range_one_to_five']),
                 _toBool(values[i]['increases_danger']),
-                isEnabled: _toBool(values[i]['enabled']), id: values[i]['id']),
+                isEnabled: _toBool(values[i]['enabled']),
+                id: values[i]['id']),
             values[i]['value'],
             _fromDateFormatted(values[i]['timestamp']),
             comment: values[i]['comment']));

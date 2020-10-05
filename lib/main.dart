@@ -305,7 +305,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => QuestionnairePage()))
-                        .then((value) => setState(() {}));
+                        .then((value) => setState(() { _indicatorsCache.invalidate(); }));
                   },
                   child: Container(
                     decoration: boxDecoration(),
