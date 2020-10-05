@@ -306,7 +306,7 @@ class _ChartsTabState extends State<ChartsTab> {
                     });
                   })),
           Align(
-              alignment: Alignment.centerRight,
+              alignment: Alignment.centerLeft,
               child: RaisedButton(
                 color: Color(0xFF1BC0C5),
                 child: Text('Moje komentarze'),
@@ -348,6 +348,14 @@ class _ChartsTabState extends State<ChartsTab> {
     if (!loadingMetricValues) {
       List<MetricValue> filteredMetricValues =
           _filterMetricValuesWithNonEmptyComment(metricValues);
+
+      if (filteredMetricValues.isEmpty) {
+        return Align(
+            alignment: Alignment.center,
+            child: Text(MyLocalizations.of(context).noComments,
+                textScaleFactor: 1.4));
+      }
+
       return ListView.builder(
           padding: const EdgeInsets.all(8),
           itemCount: filteredMetricValues.length,

@@ -26,5 +26,6 @@
     "done": "Zrobione",
     "reset": "Resetuj",
     "comment": "Komentarz",
-    "necessary_metrics": "Musisz wybrać przynajmniej jedną metrykę"
+    "necessary_metrics": "Musisz wybrać przynajmniej jedną metrykę",
+    "no_comments": "Nie ma żadnych komentarzy"
 }

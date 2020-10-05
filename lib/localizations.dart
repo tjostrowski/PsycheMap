@@ -89,6 +89,10 @@ class MyLocalizations {
   String get necessaryMetrics {
     return localizedValues[locale.languageCode]['necessary_metrics'];
   }
+
+  String get noComments {
+    return localizedValues[locale.languageCode]['no_comments'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {
