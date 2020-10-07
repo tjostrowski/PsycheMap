@@ -114,7 +114,9 @@ class ConfigurationPage extends StatelessWidget {
 }
 
 class ConfigurationTab extends StatefulWidget {
-  ConfigurationTab({Key key}) : super(key: key);
+  final bool showAllSuggestionsInitially;
+
+  ConfigurationTab({Key key, this.showAllSuggestionsInitially = true}) : super(key: key);
 
   State<StatefulWidget> createState() => ConfigurationTabState();
 }
@@ -261,9 +263,7 @@ class _SlidersListState extends State<SlidersList> {
                         await DbProvider.db.saveOrUpdateMetricValues(
                             updatedMetricValues, _now);
                       }
-                      setState(() {
-                        enabled = !enabled;
-                      });
+                      Navigator.pop(context);
                     })),
           ],
         ));
@@ -519,6 +519,7 @@ class ConfigurationTabState extends State<ConfigurationTab> {
                   MyLocalizations.of(context).getMetricName(suggestion);
             },
             hideOnLoading: true,
+            hideOnEmpty: !widget.showAllSuggestionsInitially,
           )
         : Center(
             child: CircularProgressIndicator(),
