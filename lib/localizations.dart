@@ -93,6 +93,14 @@ class MyLocalizations {
   String get noComments {
     return localizedValues[locale.languageCode]['no_comments'];
   }
+
+  String get notification {
+    return localizedValues[locale.languageCode]['notification'];
+  }
+
+  String get notificationNote1 {
+    return localizedValues[locale.languageCode]['notificationNote1'];
+  }
 }
 
 class MyLocalizationsDelegate extends LocalizationsDelegate<MyLocalizations> {

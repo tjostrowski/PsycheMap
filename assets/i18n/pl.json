@@ -27,5 +27,7 @@
     "reset": "Resetuj",
     "comment": "Komentarz",
     "necessary_metrics": "Musisz wybrać przynajmniej jedną metrykę",
-    "no_comments": "Nie ma żadnych komentarzy"
+    "no_comments": "Nie ma żadnych komentarzy",
+    "notification": "Notyfikacja",
+    "notificationNote1": "Pamiętaj o wypełnieniu ankiety w PsycheAid"
 }

@@ -44,7 +44,9 @@ dependencies:
   sqflite:
   path:
 
-  async: ^2.4.2  
+  async: ^2.4.2 
+  
+  flutter_local_notifications: ^2.0.0
 
 dev_dependencies:
   flutter_test:

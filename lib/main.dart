@@ -1,6 +1,7 @@
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -14,10 +15,18 @@ import 'package:psyche_map/metrics_indicators.dart';
 
 import 'commons.dart';
 import 'db.dart';
-
+  
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Map<String, Map<String, dynamic>> localizedValues = await initializeI18n();
+
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('app_icon');
+  final InitializationSettings initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+      onSelectNotification: (String payload) async {});
+
   bool wizardNotNecessary = await DbProvider.db.exists() &&
       await DbProvider.db.areMetricsConfigured();
   if (wizardNotNecessary) {
@@ -235,9 +244,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: FutureBuilder<List<MetricInidicatorValue>>(
             future: this.indicators,
             initialData: List(),
-            builder:
-                (BuildContext context, AsyncSnapshot<List<MetricInidicatorValue>> snapshot) {
-              if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
+            builder: (BuildContext context,
+                AsyncSnapshot<List<MetricInidicatorValue>> snapshot) {
+              if (snapshot.hasData &&
+                  snapshot.connectionState == ConnectionState.done) {
                 List<MetricInidicatorValue> metricIndicators = snapshot.data;
                 return GridView.builder(
                   shrinkWrap: false,
@@ -249,8 +259,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     final metricIndicatorValue = metricIndicators[index];
                     return Card(
                       child: ListTile(
-                        title: Text(
-                            MyLocalizations.of(context).getMetricName(metricIndicatorValue.metric)),
+                        title: Text(MyLocalizations.of(context)
+                            .getMetricName(metricIndicatorValue.metric)),
                         trailing: Container(
                           width: 15,
                           height: 15,
@@ -263,7 +273,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => ChartsPage(metricIndicatorValue.metric)));
+                                  builder: (context) =>
+                                      ChartsPage(metricIndicatorValue.metric)));
                         },
                       ),
                       elevation: 0.5,
@@ -305,7 +316,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => QuestionnairePage()))
-                        .then((value) => setState(() { _indicatorsCache.invalidate(); }));
+                        .then((value) => setState(() {
+                              _indicatorsCache.invalidate();
+                            }));
                   },
                   child: Container(
                     decoration: boxDecoration(),
@@ -345,7 +358,9 @@ class _MyHomePageState extends State<MyHomePage> {
         onTap: () {
           Navigator.push(context,
                   MaterialPageRoute(builder: (context) => ConfigurationPage()))
-              .then((value) => setState(() { _indicatorsCache.invalidate(); }));
+              .then((value) => setState(() {
+                    _indicatorsCache.invalidate();
+                  }));
         },
         child: Container(
           decoration: boxDecoration(),

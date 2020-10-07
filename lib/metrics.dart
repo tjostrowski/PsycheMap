@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:psyche_map/db.dart';
@@ -77,6 +78,31 @@ class ConfigurationPage extends StatelessWidget {
                                 child: Text(MyLocalizations.of(context).reset),
                                 onPressed: () {
                                   DbProvider.db.resetDb();
+                                },
+                              ),
+                              RaisedButton(
+                                child: Text(MyLocalizations.of(context).notification),
+                                onPressed: () async {
+                                  const AndroidNotificationDetails
+                                      androidPlatformChannelSpecifics =
+                                      AndroidNotificationDetails(
+                                          'channel_id',
+                                          'channel_name',
+                                          'channel_description',
+                                          importance: Importance.max,
+                                          priority: Priority.high,
+                                          showWhen: false);
+                                  const NotificationDetails
+                                      platformChannelSpecifics =
+                                      NotificationDetails(
+                                          android:
+                                              androidPlatformChannelSpecifics);
+                                  await flutterLocalNotificationsPlugin.show(
+                                      0,
+                                      'PsycheAid',
+                                      MyLocalizations.of(context).notificationNote1,
+                                      platformChannelSpecifics,
+                                      payload: 'item x');
                                 },
                               ),
                             ],
