@@ -500,7 +500,9 @@ class ConfigurationTabState extends State<ConfigurationTab> {
   }
 
   Widget _addButton() {
-    return RaisedButton(
+    return Container(
+        child: Align(
+            child: RaisedButton(
       child: Text(MyLocalizations.of(context).add),
       onPressed: () {
         if (currentlySelectedMetric == null ||
@@ -513,7 +515,7 @@ class ConfigurationTabState extends State<ConfigurationTab> {
         this.typeAheadController.text = '';
         setState(() {});
       },
-    );
+    )));
   }
 
   Widget _metric(Metric metric, int itemIndex) {
@@ -528,7 +530,9 @@ class ConfigurationTabState extends State<ConfigurationTab> {
         child: Container(
           height: 50,
           margin: EdgeInsets.all(2),
-          color: Colors.blue[400],
+          decoration: BoxDecoration(
+              color: Colors.blue[400],
+              borderRadius: BorderRadius.circular(20.0)),
           child: Center(
             child: Text(MyLocalizations.of(context).getMetricName(metric)),
           ),
